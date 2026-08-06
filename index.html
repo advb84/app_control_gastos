@@ -6,7 +6,7 @@
 <title>Mi Recibo — Control de Gastos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
@@ -171,7 +171,7 @@
   .user-summary .uname{ font-weight:600; font-size:15px; }
   .user-summary .usince{ font-size:11.5px; color:var(--ink-faint); }
 
-  .theme-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+  .theme-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
   .theme-swatch{ text-align:center; }
   .theme-swatch input[type="color"]{ width:100%; height:44px; border:1px solid var(--line); border-radius:10px; padding:3px; background:#fff; cursor:pointer; }
   .theme-swatch span{ display:block; font-size:10.5px; color:var(--ink-soft); margin-top:4px; }
@@ -303,7 +303,7 @@
           <div class="card" data-panel="totals">
             <div class="card-head">
               <div><h2>Resumen en vivo</h2><p class="sub">Actualizado con cada gasto que registras</p></div>
-              <div class="panel-move"><button data-dir="-1" data-panel="totals">▲</button><button data-dir="1" data-panel="totals">▼</button></div>
+              <div class="panel-move"><button data-dir="-1" data-panel="totals">▲</button><button data-dir="1" data-panel="totals">▼</button><button class="panel-max" data-panel="totals" title="Maximizar">⤢</button></div>
             </div>
             <div class="totals-grid" id="totalsGrid"></div>
           </div>
@@ -311,7 +311,7 @@
           <div class="card" data-panel="category">
             <div class="card-head">
               <div><h2>Por categoría</h2><p class="sub">Comparativo con el mes anterior — elige el tipo de gráfico</p></div>
-              <div class="panel-move"><button data-dir="-1" data-panel="category">▲</button><button data-dir="1" data-panel="category">▼</button></div>
+              <div class="panel-move"><button data-dir="-1" data-panel="category">▲</button><button data-dir="1" data-panel="category">▼</button><button class="panel-max" data-panel="category" title="Maximizar">⤢</button></div>
             </div>
             <div class="chip-row" id="catTypeChips">
               <button class="btn-chip active" data-type="bar">Barras</button>
@@ -321,21 +321,23 @@
             <div class="checkbox-row" id="catCompareRow"><input type="checkbox" id="catCompareChk" checked><label for="catCompareChk">Comparar con mes anterior</label></div>
             <div class="chart-wrap" id="categoryChartWrap"><canvas id="categoryChartCanvas"></canvas></div>
             <div class="empty-state" id="catNoData" style="display:none;">Aún no hay gastos este mes</div>
+            <div class="empty-state" id="catChartError" style="display:none;color:var(--coral);"></div>
             <div id="catLedger" style="margin-top:10px;"></div>
           </div>
 
           <div class="card" data-panel="trend">
             <div class="card-head">
               <div><h2>Tendencia — últimos 6 meses</h2></div>
-              <div class="panel-move"><button data-dir="-1" data-panel="trend">▲</button><button data-dir="1" data-panel="trend">▼</button></div>
+              <div class="panel-move"><button data-dir="-1" data-panel="trend">▲</button><button data-dir="1" data-panel="trend">▼</button><button class="panel-max" data-panel="trend" title="Maximizar">⤢</button></div>
             </div>
             <div class="chart-wrap short"><canvas id="trendChart"></canvas></div>
+            <div class="empty-state" id="trendChartError" style="display:none;color:var(--coral);"></div>
           </div>
 
           <div class="card" data-panel="custom">
             <div class="card-head">
               <div><h2>Reporte personalizado</h2><p class="sub">Elige rango de fechas, categorías y tipo de gráfico</p></div>
-              <div class="panel-move"><button data-dir="-1" data-panel="custom">▲</button><button data-dir="1" data-panel="custom">▼</button></div>
+              <div class="panel-move"><button data-dir="-1" data-panel="custom">▲</button><button data-dir="1" data-panel="custom">▼</button><button class="panel-max" data-panel="custom" title="Maximizar">⤢</button></div>
             </div>
             <div class="row2">
               <div class="field"><label>Desde</label><input type="date" id="cbFrom"></div>
@@ -376,6 +378,7 @@
               </div>
               <div class="field" id="ngDaysWrap" style="display:none;"><label>Nº de días</label><input type="number" id="ngDays" min="1" value="30"></div>
             </div>
+            <div class="field"><label>Aplica a</label><select id="ngCategory"><option value="">Todas las categorías (general)</option></select></div>
             <div class="field"><label>Importe tope</label><input type="number" id="ngAmount" class="amount-input" min="0" step="1" placeholder="0"></div>
             <div class="checkbox-row"><input type="checkbox" id="ngBanner" checked><label for="ngBanner">Mostrar en la cabecera principal</label></div>
             <button class="btn-primary" id="ngSaveBtn">Crear tope</button>
@@ -428,11 +431,14 @@
           <h2>Colores de la app</h2>
           <p class="sub">Personaliza los acentos — se aplican al instante</p>
           <div class="theme-grid">
+            <div class="theme-swatch"><input type="color" id="theme_paper" value="#EDEEE8"><span>Fondo</span></div>
+            <div class="theme-swatch"><input type="color" id="theme_card" value="#FFFFFF"><span>Tarjetas</span></div>
             <div class="theme-swatch"><input type="color" id="theme_ink" value="#2B2340"><span>Principal</span></div>
             <div class="theme-swatch"><input type="color" id="theme_gold" value="#C7963E"><span>Acento</span></div>
             <div class="theme-swatch"><input type="color" id="theme_teal" value="#2F7A6B"><span>Positivo</span></div>
             <div class="theme-swatch"><input type="color" id="theme_coral" value="#D24C3D"><span>Alerta</span></div>
           </div>
+          <p class="sub" style="margin-top:-6px;">"Principal" pinta la cabecera y los botones; "Acento" resalta metas y el mes actual en las gráficas.</p>
           <button class="btn-primary" id="themeSaveBtn">Guardar colores</button>
           <button class="btn-secondary" id="themeResetBtn">Restablecer</button>
         </div>
@@ -472,8 +478,8 @@
    MI RECIBO — v4 (Supabase + perfil + temas + paneles movibles)
    ========================================================= */
 
-const SUPABASE_URL = 'https://nleoehnvwckmvdkacvyp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sZW9laG52d2NrbXZka2FjdnlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMDA5NTgsImV4cCI6MjEwMTU3Njk1OH0.1D-sGwEIAg8OLtiPXwi_E7-sWV1hJaFcm36K4YE2fxs';
+const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY';
 const FAKE_EMAIL_DOMAIN = 'mirecibo.local';
 
 let sb = null;
@@ -498,7 +504,8 @@ const DEFAULT_CATEGORIES = [
 const PERIOD_LABELS = { daily:'Diario', weekly:'Semanal', biweekly:'Quincenal', monthly:'Mensual', quarterly:'Trimestral', annual:'Anual', custom:'Personalizado' };
 const MONTH_NAMES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const DEFAULT_PANEL_ORDER = ['totals','category','trend','custom'];
-const DEFAULT_THEME = { ink:'#2B2340', gold:'#C7963E', teal:'#2F7A6B', coral:'#D24C3D' };
+const DEFAULT_THEME = { paper:'#EDEEE8', card:'#FFFFFF', ink:'#2B2340', gold:'#C7963E', teal:'#2F7A6B', coral:'#D24C3D' };
+function cssVar(name){ return (getComputedStyle(document.documentElement).getPropertyValue(name)||'').trim(); }
 
 let currentUser = null;
 let categories = [];
@@ -640,7 +647,7 @@ async function loadAllData(){
   ]);
   categories = catRes.data || [];
   expenses = (expRes.data || []).map(e=>({ id:e.id, amount:Number(e.amount), description:e.description, category_id:e.category_id, date:e.created_at }));
-  goals = (goalRes.data || []).map(g=>({ id:g.id, label:g.label, period_type:g.period_type, custom_days:g.custom_days, amount:Number(g.amount), show_on_banner:g.show_on_banner }));
+  goals = (goalRes.data || []).map(g=>({ id:g.id, label:g.label, period_type:g.period_type, custom_days:g.custom_days, amount:Number(g.amount), show_on_banner:g.show_on_banner, category_id:g.category_id||null }));
   reportPresets = presetRes.data || [];
   profile = profRes.data || null;
 }
@@ -683,6 +690,8 @@ function applyTheme(theme){
 }
 document.getElementById('themeSaveBtn').addEventListener('click', async ()=>{
   const theme = {
+    paper: document.getElementById('theme_paper').value,
+    card: document.getElementById('theme_card').value,
     ink: document.getElementById('theme_ink').value,
     gold: document.getElementById('theme_gold').value,
     teal: document.getElementById('theme_teal').value,
@@ -690,14 +699,14 @@ document.getElementById('themeSaveBtn').addEventListener('click', async ()=>{
   };
   applyTheme(theme);
   const ok = await saveProfilePatch({ theme });
-  if(ok) showToast('Colores guardados');
+  if(ok) showToast('Colores guardados en toda la app');
 });
 document.getElementById('themeResetBtn').addEventListener('click', async ()=>{
   applyTheme(DEFAULT_THEME);
   const ok = await saveProfilePatch({ theme: {} });
   if(ok) showToast('Colores restablecidos');
 });
-['theme_ink','theme_gold','theme_teal','theme_coral'].forEach(id=>{
+['theme_paper','theme_card','theme_ink','theme_gold','theme_teal','theme_coral'].forEach(id=>{
   document.getElementById(id).addEventListener('input', (e)=>{
     document.documentElement.style.setProperty('--'+id.replace('theme_',''), e.target.value);
   });
@@ -706,6 +715,8 @@ document.getElementById('themeResetBtn').addEventListener('click', async ()=>{
 /* ================= CATEGORIES ================= */
 function fillCategorySelect(){
   document.getElementById('mCat').innerHTML = categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const ngCat = document.getElementById('ngCategory');
+  if(ngCat) ngCat.innerHTML = '<option value="">Todas las categorías (general)</option>' + categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
 }
 function guessCategory(text){
   const low = text.toLowerCase();
@@ -777,7 +788,16 @@ function goalRange(g, now){
     default: return [startOfDay(now), now];
   }
 }
-function goalSpent(g){ const [s,e] = goalRange(g); return sumSince(s,e); }
+function goalSpent(g){
+  const [s,e] = goalRange(g);
+  const st=s.getTime(), en=e.getTime();
+  return expenses.filter(x=>{
+    const t=new Date(x.date).getTime();
+    if(t<st || t>en) return false;
+    if(g.category_id && x.category_id!==g.category_id) return false;
+    return true;
+  }).reduce((sum,x)=>sum+x.amount,0);
+}
 function periodLabel(g){ return g.period_type==='custom' ? `Últimos ${g.custom_days||30} días` : (PERIOD_LABELS[g.period_type] || g.period_type); }
 
 /* ---------------- count-up ---------------- */
@@ -977,8 +997,30 @@ function applyPanelOrder(order){
     });
   });
 }
+let maximizedPanel = null;
+function setMaximized(panelId){
+  maximizedPanel = panelId;
+  const container = document.getElementById('reportsPanels');
+  container.querySelectorAll('[data-panel]').forEach(card=>{
+    card.style.display = (!panelId || card.dataset.panel===panelId) ? 'block' : 'none';
+  });
+  container.querySelectorAll('.panel-max').forEach(btn=>{
+    const isThis = btn.dataset.panel === panelId;
+    btn.textContent = isThis ? '⤡' : '⤢';
+    btn.title = isThis ? 'Volver a todos los reportes' : 'Maximizar';
+  });
+  container.querySelectorAll('.panel-move button[data-dir]').forEach(btn=>{
+    btn.style.display = panelId ? 'none' : 'inline-block';
+  });
+}
 document.getElementById('reportsPanels').addEventListener('click', async (e)=>{
-  const btn = e.target.closest('.panel-move button');
+  const maxBtn = e.target.closest('.panel-max');
+  if(maxBtn){
+    const id = maxBtn.dataset.panel;
+    setMaximized(maximizedPanel===id ? null : id);
+    return;
+  }
+  const btn = e.target.closest('.panel-move button[data-dir]');
   if(!btn) return;
   const dir = parseInt(btn.dataset.dir);
   const panelId = btn.dataset.panel;
@@ -1042,27 +1084,41 @@ function renderCategorySection(){
   destroyChart('category');
   const wrap = document.getElementById('categoryChartWrap');
   const noData = document.getElementById('catNoData');
+  const errBox = document.getElementById('catChartError');
+  if(errBox) errBox.style.display = 'none';
   if(cats.length===0){ wrap.style.display='none'; noData.style.display='block'; return; }
   wrap.style.display='block'; noData.style.display='none';
 
-  const ctx = document.getElementById('categoryChartCanvas');
-  if(catChartType==='doughnut'){
-    charts.category = new Chart(ctx, {
-      type:'doughnut',
-      data:{ labels: cats.map(c=>c.name), datasets:[{ data: cats.map(c=>thisData[c.id]||0), backgroundColor: cats.map(c=>c.color), borderWidth:2, borderColor:'#fff' }] },
-      options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', animation:{ animateRotate:true, duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } } }
-    });
-  } else {
-    const datasets = [];
-    if(catCompareEnabled) datasets.push({ label:'Mes anterior', data: cats.map(c=>prevData[c.id]||0), backgroundColor:'#D9D5C8', borderColor:'#D9D5C8', borderRadius:6, maxBarThickness:22, tension:.35, fill:false, pointRadius:catChartType==='line'?3:0 });
-    datasets.push({ label:'Este mes', data: cats.map(c=>thisData[c.id]||0), backgroundColor:'#2B2340', borderColor:'#2B2340', borderRadius:6, maxBarThickness:22, tension:.35, fill:false, pointRadius:catChartType==='line'?3:0 });
-    charts.category = new Chart(ctx, {
-      type: catChartType==='line' ? 'line' : 'bar',
-      data:{ labels: cats.map(c=>c.name), datasets },
-      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' },
-        plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } },
-        scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:10.5 } } } } }
-    });
+  if(typeof Chart === 'undefined'){
+    wrap.style.display='none';
+    if(errBox){ errBox.style.display='block'; errBox.textContent = 'No se pudo cargar la librería de gráficos (revisa tu conexión y recarga la página).'; }
+    return;
+  }
+  try{
+    const ctx = document.getElementById('categoryChartCanvas');
+    const inkColor = cssVar('--ink') || '#2B2340';
+    if(catChartType==='doughnut'){
+      charts.category = new Chart(ctx, {
+        type:'doughnut',
+        data:{ labels: cats.map(c=>c.name), datasets:[{ data: cats.map(c=>thisData[c.id]||0), backgroundColor: cats.map(c=>c.color), borderWidth:2, borderColor:'#fff' }] },
+        options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', animation:{ animateRotate:true, duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } } }
+      });
+    } else {
+      const datasets = [];
+      if(catCompareEnabled) datasets.push({ label:'Mes anterior', data: cats.map(c=>prevData[c.id]||0), backgroundColor:'#D9D5C8', borderColor:'#D9D5C8', borderRadius:6, maxBarThickness:22, tension:.35, fill:false, pointRadius:catChartType==='line'?3:0 });
+      datasets.push({ label:'Este mes', data: cats.map(c=>thisData[c.id]||0), backgroundColor:inkColor, borderColor:inkColor, borderRadius:6, maxBarThickness:22, tension:.35, fill:false, pointRadius:catChartType==='line'?3:0 });
+      charts.category = new Chart(ctx, {
+        type: catChartType==='line' ? 'line' : 'bar',
+        data:{ labels: cats.map(c=>c.name), datasets },
+        options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' },
+          plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } },
+          scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:10.5 } } } } }
+      });
+    }
+  }catch(err){
+    console.error('Error creando el gráfico de categorías', err);
+    wrap.style.display='none';
+    if(errBox){ errBox.style.display='block'; errBox.textContent = 'No se pudo dibujar este gráfico. Prueba a recargar la página.'; }
   }
 }
 function renderTrendChart(){
@@ -1074,12 +1130,25 @@ function renderTrendChart(){
     months.push({ label: MONTH_NAMES[d.getMonth()], total });
   }
   destroyChart('trend');
-  charts.trend = new Chart(document.getElementById('trendChart'), {
-    type:'bar',
-    data:{ labels: months.map(m=>m.label), datasets:[{ data: months.map(m=>m.total), backgroundColor: months.map((m,i)=> i===months.length-1 ? '#C7963E' : '#2B2340'), borderRadius:7, maxBarThickness:30 }] },
-    options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } },
-      scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:11 } } } } }
-  });
+  const errBox = document.getElementById('trendChartError');
+  if(errBox) errBox.style.display = 'none';
+  if(typeof Chart === 'undefined'){
+    if(errBox){ errBox.style.display='block'; errBox.textContent='No se pudo cargar la librería de gráficos.'; }
+    return;
+  }
+  try{
+    const inkColor = cssVar('--ink') || '#2B2340';
+    const goldColor = cssVar('--gold') || '#C7963E';
+    charts.trend = new Chart(document.getElementById('trendChart'), {
+      type:'bar',
+      data:{ labels: months.map(m=>m.label), datasets:[{ data: months.map(m=>m.total), backgroundColor: months.map((m,i)=> i===months.length-1 ? goldColor : inkColor), borderRadius:7, maxBarThickness:30 }] },
+      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:11 } } } } }
+    });
+  }catch(err){
+    console.error('Error creando el gráfico de tendencia', err);
+    if(errBox){ errBox.style.display='block'; errBox.textContent='No se pudo dibujar este gráfico.'; }
+  }
 }
 
 /* ---------------- custom report builder ---------------- */
@@ -1132,18 +1201,15 @@ function renderCustomReport(cfg){
       <div class="stat-box"><div class="n">${r.count}</div><div class="l">Movimientos</div></div>
     </div>
     <div class="chart-wrap"><canvas id="customChartCanvas"></canvas></div>
+    <div class="empty-state" id="customChartError" style="display:none;color:var(--coral);"></div>
     <button class="btn-secondary" id="savePresetToggle">Guardar este reporte</button>
     <div id="savePresetForm" style="display:none; margin-top:10px;">
       <div class="field"><label>Nombre del reporte</label><input type="text" id="presetNameInput" placeholder="Ej. Gastos de comida - mayo"></div>
       <button class="btn-primary" id="presetNameSave">Guardar</button>
     </div>`;
-  const ctx = document.getElementById('customChartCanvas'); const type = cfg.type;
-  charts.custom = new Chart(ctx, {
-    type: type,
-    data:{ labels: r.labels, datasets:[{ data: r.data, backgroundColor: type==='line' ? 'rgba(43,35,64,.12)' : r.colors, borderColor:'#2B2340', borderWidth: type==='line'?2:0, borderRadius: type==='bar'?6:0, fill:type==='line', tension:.35, pointRadius:type==='line'?3:0 }] },
-    options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' }, plugins:{ legend:{ display: type==='doughnut' } },
-      scales: type==='doughnut' ? {} : { y:{ beginAtZero:true, grid:{ color:'#EDEBE3' } }, x:{ grid:{ display:false } } } }
-  });
+
+  /* Los botones de guardar se enganchan primero: así funcionan aunque
+     el gráfico de abajo no pudiera dibujarse por algún motivo. */
   document.getElementById('savePresetToggle').addEventListener('click', ()=>{
     const f = document.getElementById('savePresetForm');
     f.style.display = f.style.display==='none' ? 'block' : 'none';
@@ -1152,13 +1218,35 @@ function renderCustomReport(cfg){
   document.getElementById('presetNameSave').addEventListener('click', async ()=>{
     const name = document.getElementById('presetNameInput').value.trim();
     if(!name){ showToast('Ponle un nombre al reporte'); return; }
+    const btn = document.getElementById('presetNameSave'); btn.disabled = true; btn.textContent = 'Guardando…';
     const { data, error } = await sb.from('report_presets').insert({ name, config: cfg }).select().single();
-    if(error){ showToast('No se pudo guardar el reporte', true); return; }
+    btn.disabled = false; btn.textContent = 'Guardar';
+    if(error){ showToast('No se pudo guardar el reporte: '+error.message, true); return; }
     reportPresets.unshift(data);
     renderSavedReports();
     document.getElementById('savePresetForm').style.display='none';
     showToast('Reporte "'+name+'" guardado');
   });
+
+  if(typeof Chart === 'undefined'){
+    document.getElementById('customChartError').style.display='block';
+    document.getElementById('customChartError').textContent = 'No se pudo cargar la librería de gráficos (revisa tu conexión y recarga la página).';
+    return;
+  }
+  try{
+    const ctx = document.getElementById('customChartCanvas'); const type = cfg.type;
+    const inkColor = cssVar('--ink') || '#2B2340';
+    charts.custom = new Chart(ctx, {
+      type: type,
+      data:{ labels: r.labels, datasets:[{ data: r.data, backgroundColor: type==='line' ? 'rgba(43,35,64,.12)' : r.colors, borderColor:inkColor, borderWidth: type==='line'?2:0, borderRadius: type==='bar'?6:0, fill:type==='line', tension:.35, pointRadius:type==='line'?3:0 }] },
+      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' }, plugins:{ legend:{ display: type==='doughnut' } },
+        scales: type==='doughnut' ? {} : { y:{ beginAtZero:true, grid:{ color:'#EDEBE3' } }, x:{ grid:{ display:false } } } }
+    });
+  }catch(err){
+    console.error('Error creando el gráfico personalizado', err);
+    document.getElementById('customChartError').style.display='block';
+    document.getElementById('customChartError').textContent = 'No se pudo dibujar este gráfico, pero tus datos están bien (mira el total y los movimientos arriba). Puedes guardar el reporte igual.';
+  }
 }
 document.getElementById('cbGenBtn').addEventListener('click', ()=>{
   const cfg = { from: document.getElementById('cbFrom').value, to: document.getElementById('cbTo').value, cats: Array.from(cbSelectedCats), group: document.getElementById('cbGroup').value, type: document.getElementById('cbType').value };
@@ -1189,16 +1277,23 @@ document.getElementById('ngType').addEventListener('change', (e)=>{
 document.getElementById('ngSaveBtn').addEventListener('click', async ()=>{
   const period_type = document.getElementById('ngType').value;
   const isCustom = period_type==='custom';
-  const label = isCustom ? document.getElementById('ngLabel').value.trim() : PERIOD_LABELS[period_type];
+  const category_id = document.getElementById('ngCategory').value || null;
+  const catObj = category_id ? categories.find(c=>c.id===category_id) : null;
+  let label;
+  if(isCustom){
+    label = document.getElementById('ngLabel').value.trim();
+  } else {
+    label = catObj ? (catObj.name + ' · ' + PERIOD_LABELS[period_type]) : PERIOD_LABELS[period_type];
+  }
   const custom_days = isCustom ? (parseInt(document.getElementById('ngDays').value)||30) : null;
   const amount = parseFloat(document.getElementById('ngAmount').value);
   const show_on_banner = document.getElementById('ngBanner').checked;
   if(isCustom && !label){ showToast('Ponle un nombre al tope personalizado'); return; }
   if(!amount || amount<=0){ showToast('Introduce un importe de tope válido'); return; }
-  const { data, error } = await sb.from('goals').insert({ label, period_type, custom_days, amount, show_on_banner }).select().single();
+  const { data, error } = await sb.from('goals').insert({ label, period_type, custom_days, amount, show_on_banner, category_id }).select().single();
   if(error){ showToast('No se pudo crear el tope', true); return; }
-  goals.push({ id:data.id, label:data.label, period_type:data.period_type, custom_days:data.custom_days, amount:Number(data.amount), show_on_banner:data.show_on_banner });
-  document.getElementById('ngLabel').value=''; document.getElementById('ngAmount').value='';
+  goals.push({ id:data.id, label:data.label, period_type:data.period_type, custom_days:data.custom_days, amount:Number(data.amount), show_on_banner:data.show_on_banner, category_id:data.category_id });
+  document.getElementById('ngLabel').value=''; document.getElementById('ngAmount').value=''; document.getElementById('ngCategory').value='';
   renderAll();
   showToast('Tope creado: '+label);
 });
@@ -1227,7 +1322,7 @@ function renderGoals(){
     const statusTxt = pct>=1 ? `Superado por ${fmt(spent-g.amount)}` : `Te quedan ${fmt(g.amount-spent)} (${Math.round(pct*100)}% usado)`;
     return `
       <div class="goal-card">
-        <div class="goal-head"><span class="gname">${g.label} <span style="color:var(--ink-faint); font-weight:400;">· ${periodLabel(g)}</span></span><span class="gnums">${fmt(spent)} / ${fmt(g.amount)}</span></div>
+        <div class="goal-head"><span class="gname">${g.category_id ? `<span class="cat-dot" style="background:${catById(g.category_id).color}"></span>` : ''}${g.label} <span style="color:var(--ink-faint); font-weight:400;">· ${periodLabel(g)}</span></span><span class="gnums">${fmt(spent)} / ${fmt(g.amount)}</span></div>
         <div class="goal-bar-bg"><div class="goal-bar-fill" data-w="${pct*100}" style="background:${color};"></div></div>
         <div class="goal-status">${statusTxt}</div>
         <div class="goal-foot">
@@ -1345,6 +1440,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    if(typeof maximizedPanel !== 'undefined' && maximizedPanel) setMaximized(null);
     if(btn.dataset.tab==='reportes') renderReports();
     if(btn.dataset.tab==='perfil') renderCatManage();
   });
