@@ -21,9 +21,7 @@
   button, input, select{ font-family:inherit; }
   ::selection{ background:var(--gold); color:#fff; }
 
-  #configWarning{
-    background:#3A2A2A; color:#F4D9D4; font-size:12.5px; padding:12px 18px; line-height:1.5; display:none;
-  }
+  #configWarning{ background:#3A2A2A; color:#F4D9D4; font-size:12.5px; padding:12px 18px; line-height:1.5; display:none; }
   #configWarning code{ background:rgba(255,255,255,.1); padding:1px 5px; border-radius:4px; }
 
   #authScreen{ min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:32px 26px; animation:fadeIn .4s var(--ease); }
@@ -74,8 +72,12 @@
 
   main{flex:1; padding:18px 18px 106px; overflow-y:auto;}
   .card{ background:var(--card); border-radius:var(--radius); padding:18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(43,35,64,.04), 0 8px 20px -12px rgba(43,35,64,.12); }
+  .card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
   .card h2{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; margin:0 0 4px; }
   .card .sub{font-size:12.5px; color:var(--ink-soft); margin:0 0 14px;}
+  .panel-move{ display:flex; gap:4px; flex-shrink:0; }
+  .panel-move button{ width:26px; height:26px; border-radius:8px; border:1px solid var(--line); background:#FBFAF7; color:var(--ink-soft); cursor:pointer; font-size:12px; line-height:1; }
+  .panel-move button:disabled{ opacity:.3; cursor:default; }
 
   .mic-wrap{display:flex; flex-direction:column; align-items:center; padding:10px 0 6px;}
   #micBtn{ width:96px; height:96px; border-radius:50%; background:var(--ink); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; position:relative; transition:transform .15s var(--ease), background .2s ease; }
@@ -97,6 +99,10 @@
   .row2 .field{flex:1;}
   .checkbox-row{ display:flex; align-items:center; gap:8px; margin:10px 0 14px; font-size:13px; color:var(--ink-soft); }
   .checkbox-row input{ width:16px; height:16px; }
+  .pw-wrap{ position:relative; }
+  .pw-wrap input{ padding-right:42px; }
+  .eye-btn{ position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--ink-faint); padding:6px; }
+  .eye-btn svg{ width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.7; display:block; }
   .btn-primary{ width:100%; padding:13px; border:none; border-radius:10px; background:var(--ink); color:var(--paper); font-weight:600; font-size:14.5px; cursor:pointer; margin-top:4px; transition:transform .12s var(--ease), opacity .2s; }
   .btn-primary:active{transform:scale(.98);}
   .btn-primary:disabled{ opacity:.5; }
@@ -104,14 +110,18 @@
   .btn-secondary:active{ transform:scale(.98); }
   .btn-chip{ border:1px solid var(--line); background:#fff; border-radius:999px; padding:7px 13px; font-size:12.5px; cursor:pointer; color:var(--ink-soft); transition:all .15s var(--ease); }
   .btn-chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
 
   .cat-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;flex-shrink:0;}
 
-  .totals-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .totals-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:0;}
   .stat-box{background:#FBFAF7; border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
   .stat-box .n{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:19px;}
   .stat-box .l{font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; margin-top:2px;}
   canvas{max-width:100%;}
+  .chart-wrap{ position:relative; width:100%; height:220px; margin-top:4px; }
+  .chart-wrap.short{ height:190px; }
+  .chart-wrap canvas{ display:block; }
   .ledger-row{ display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px dashed var(--line); font-size:13.5px; }
   .ledger-row:last-child{border-bottom:none;}
   .ledger-row .name{display:flex; align-items:center; color:var(--ink);}
@@ -124,9 +134,13 @@
   .goal-bar-bg{height:9px; background:#EDEBE3; border-radius:6px; overflow:hidden;}
   .goal-bar-fill{height:100%; border-radius:6px; transition:width .6s var(--ease); width:0;}
   .goal-status{font-size:11px; margin-top:6px; color:var(--ink-soft);}
-  .goal-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+  .goal-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; flex-wrap:wrap; }
   .goal-foot label{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-soft); }
-  .goal-foot button{ background:none; border:none; color:var(--ink-faint); font-size:14px; cursor:pointer; }
+  .goal-foot-actions{ display:flex; gap:10px; align-items:center; }
+  .goal-foot-actions button{ background:none; border:none; color:var(--ink-soft); font-size:12px; cursor:pointer; font-weight:600; }
+  .goal-foot-actions .goal-del{ color:var(--ink-faint); font-size:14px; }
+  .goal-edit-row{ display:flex; gap:8px; align-items:flex-end; margin-top:4px; }
+  .goal-edit-row .field{ flex:1; margin-bottom:0; }
   .new-goal-form{ border-top:1px dashed var(--line); margin-top:6px; padding-top:16px; }
 
   .hist-filters{display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:2px;}
@@ -157,6 +171,11 @@
   .user-summary .uname{ font-weight:600; font-size:15px; }
   .user-summary .usince{ font-size:11.5px; color:var(--ink-faint); }
 
+  .theme-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+  .theme-swatch{ text-align:center; }
+  .theme-swatch input[type="color"]{ width:100%; height:44px; border:1px solid var(--line); border-radius:10px; padding:3px; background:#fff; cursor:pointer; }
+  .theme-swatch span{ display:block; font-size:10.5px; color:var(--ink-soft); margin-top:4px; }
+
   .cb-cats{ display:flex; flex-wrap:wrap; gap:7px; margin-top:6px; }
   .report-preset{ display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px dashed var(--line); font-size:13px; }
   .report-preset:last-child{ border-bottom:none; }
@@ -173,10 +192,6 @@
   .tab-panel{display:none;}
   .tab-panel.active{display:block; animation:panelIn .32s var(--ease);}
   .tab-panel.active .card{ animation:cardIn .4s var(--ease) backwards; }
-  .tab-panel.active .card:nth-child(1){animation-delay:.02s;}
-  .tab-panel.active .card:nth-child(2){animation-delay:.08s;}
-  .tab-panel.active .card:nth-child(3){animation-delay:.14s;}
-  .tab-panel.active .card:nth-child(4){animation-delay:.20s;}
 
   .toast{ position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(8px); background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:12.5px; opacity:0; pointer-events:none; transition:opacity .25s var(--ease), transform .25s var(--ease); max-width:80%; text-align:center; z-index:20; }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
@@ -211,14 +226,29 @@
       </div>
       <div id="loginForm">
         <div class="field"><label>Usuario</label><input type="text" id="loginUser" autocomplete="username" placeholder="tu_usuario"></div>
-        <div class="field"><label>Contraseña</label><input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••"></div>
+        <div class="field"><label>Contraseña</label>
+          <div class="pw-wrap">
+            <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••">
+            <button type="button" class="eye-btn" data-target="loginPass" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
         <div class="auth-error" id="loginError"></div>
         <button class="btn-primary" id="loginBtn">Entrar</button>
       </div>
       <div id="registerForm" style="display:none;">
         <div class="field"><label>Elige un usuario</label><input type="text" id="regUser" autocomplete="username" placeholder="letras, números o _ (mín. 3)"></div>
-        <div class="field"><label>Contraseña</label><input type="password" id="regPass" autocomplete="new-password" placeholder="mín. 6 caracteres"></div>
-        <div class="field"><label>Repite la contraseña</label><input type="password" id="regPass2" autocomplete="new-password" placeholder="••••••••"></div>
+        <div class="field"><label>Contraseña</label>
+          <div class="pw-wrap">
+            <input type="password" id="regPass" autocomplete="new-password" placeholder="mín. 6 caracteres">
+            <button type="button" class="eye-btn" data-target="regPass" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <div class="field"><label>Repite la contraseña</label>
+          <div class="pw-wrap">
+            <input type="password" id="regPass2" autocomplete="new-password" placeholder="••••••••">
+            <button type="button" class="eye-btn" data-target="regPass2" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
         <div class="auth-error" id="regError"></div>
         <button class="btn-primary" id="regBtn">Crear cuenta</button>
         <div class="auth-hint">Tus datos se guardan en tu proyecto de Supabase. Puedes cerrar la página y volver cuando quieras: la sesión se mantiene.</div>
@@ -248,7 +278,7 @@
       <section class="tab-panel active" id="tab-registrar">
         <div class="card">
           <h2>Registrar por voz</h2>
-          <p class="sub">Pulsa y di algo como «gasté 12 euros en café»</p>
+          <p class="sub">Pulsa y di algo como «gasté 12 euros en café» o «diez euros en Starbucks»</p>
           <div class="mic-wrap">
             <button id="micBtn" aria-label="Grabar gasto por voz">
               <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
@@ -266,43 +296,61 @@
         </div>
       </section>
 
-      <!-- TAB: REPORTES -->
+      <!-- TAB: REPORTES (paneles movibles) -->
       <section class="tab-panel" id="tab-reportes">
-        <div class="card">
-          <h2>Resumen en vivo</h2>
-          <p class="sub">Actualizado con cada gasto que registras</p>
-          <div class="totals-grid" id="totalsGrid"></div>
-        </div>
-        <div class="card">
-          <h2>Este mes vs. mes anterior</h2>
-          <p class="sub">Comparativa por categoría</p>
-          <canvas id="compareChart" height="220"></canvas>
-        </div>
-        <div class="card">
-          <h2>Tendencia — últimos 6 meses</h2>
-          <canvas id="trendChart" height="200"></canvas>
-        </div>
-        <div class="card">
-          <h2>Por categoría</h2>
-          <p class="sub">Distribución del mes actual</p>
-          <canvas id="catChart" height="220"></canvas>
-          <div id="catLedger" style="margin-top:10px;"></div>
-        </div>
-        <div class="card">
-          <h2>Reporte personalizado</h2>
-          <p class="sub">Elige rango de fechas, categorías y tipo de gráfico</p>
-          <div class="row2">
-            <div class="field"><label>Desde</label><input type="date" id="cbFrom"></div>
-            <div class="field"><label>Hasta</label><input type="date" id="cbTo"></div>
+        <div id="reportsPanels">
+
+          <div class="card" data-panel="totals">
+            <div class="card-head">
+              <div><h2>Resumen en vivo</h2><p class="sub">Actualizado con cada gasto que registras</p></div>
+              <div class="panel-move"><button data-dir="-1" data-panel="totals">▲</button><button data-dir="1" data-panel="totals">▼</button></div>
+            </div>
+            <div class="totals-grid" id="totalsGrid"></div>
           </div>
-          <div class="field"><label>Categorías</label><div class="cb-cats" id="cbCats"></div></div>
-          <div class="row2">
-            <div class="field"><label>Agrupar por</label><select id="cbGroup"><option value="day">Día</option><option value="category">Categoría</option><option value="week">Semana</option></select></div>
-            <div class="field"><label>Tipo de gráfico</label><select id="cbType"><option value="bar">Barras</option><option value="line">Línea</option><option value="doughnut">Dona</option></select></div>
+
+          <div class="card" data-panel="category">
+            <div class="card-head">
+              <div><h2>Por categoría</h2><p class="sub">Comparativo con el mes anterior — elige el tipo de gráfico</p></div>
+              <div class="panel-move"><button data-dir="-1" data-panel="category">▲</button><button data-dir="1" data-panel="category">▼</button></div>
+            </div>
+            <div class="chip-row" id="catTypeChips">
+              <button class="btn-chip active" data-type="bar">Barras</button>
+              <button class="btn-chip" data-type="line">Líneas</button>
+              <button class="btn-chip" data-type="doughnut">Dona</button>
+            </div>
+            <div class="checkbox-row" id="catCompareRow"><input type="checkbox" id="catCompareChk" checked><label for="catCompareChk">Comparar con mes anterior</label></div>
+            <div class="chart-wrap" id="categoryChartWrap"><canvas id="categoryChartCanvas"></canvas></div>
+            <div class="empty-state" id="catNoData" style="display:none;">Aún no hay gastos este mes</div>
+            <div id="catLedger" style="margin-top:10px;"></div>
           </div>
-          <button class="btn-primary" id="cbGenBtn">Generar reporte</button>
-          <div id="customReportOut"></div>
-          <div id="savedReports" style="margin-top:14px;"></div>
+
+          <div class="card" data-panel="trend">
+            <div class="card-head">
+              <div><h2>Tendencia — últimos 6 meses</h2></div>
+              <div class="panel-move"><button data-dir="-1" data-panel="trend">▲</button><button data-dir="1" data-panel="trend">▼</button></div>
+            </div>
+            <div class="chart-wrap short"><canvas id="trendChart"></canvas></div>
+          </div>
+
+          <div class="card" data-panel="custom">
+            <div class="card-head">
+              <div><h2>Reporte personalizado</h2><p class="sub">Elige rango de fechas, categorías y tipo de gráfico</p></div>
+              <div class="panel-move"><button data-dir="-1" data-panel="custom">▲</button><button data-dir="1" data-panel="custom">▼</button></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Desde</label><input type="date" id="cbFrom"></div>
+              <div class="field"><label>Hasta</label><input type="date" id="cbTo"></div>
+            </div>
+            <div class="field"><label>Categorías</label><div class="cb-cats" id="cbCats"></div></div>
+            <div class="row2">
+              <div class="field"><label>Agrupar por</label><select id="cbGroup"><option value="day">Día</option><option value="category">Categoría</option><option value="week">Semana</option></select></div>
+              <div class="field"><label>Tipo de gráfico</label><select id="cbType"><option value="bar">Barras</option><option value="line">Línea</option><option value="doughnut">Dona</option></select></div>
+            </div>
+            <button class="btn-primary" id="cbGenBtn">Generar reporte</button>
+            <div id="customReportOut"></div>
+            <div id="savedReports" style="margin-top:14px;"></div>
+          </div>
+
         </div>
       </section>
 
@@ -313,7 +361,7 @@
           <p class="sub">Crea los topes que necesites — diario, semanal, quincenal, mensual, trimestral, anual o un número de días a tu medida. Marca cuáles quieres ver en la cabecera.</p>
           <div id="goalsList"></div>
           <div class="new-goal-form">
-            <div class="field"><label>Nombre del tope</label><input type="text" id="ngLabel" placeholder="Ej. Tope de comida quincenal"></div>
+            <div class="field" id="ngLabelWrap" style="display:none;"><label>Nombre del tope</label><input type="text" id="ngLabel" placeholder="Ej. Tope de comida"></div>
             <div class="row2">
               <div class="field"><label>Periodo</label>
                 <select id="ngType">
@@ -351,15 +399,44 @@
         </div>
       </section>
 
-      <!-- TAB: AJUSTES -->
-      <section class="tab-panel" id="tab-ajustes">
+      <!-- TAB: PERFIL -->
+      <section class="tab-panel" id="tab-perfil">
         <div class="card">
           <div class="user-summary">
             <div class="av-big" id="avBig">?</div>
             <div><div class="uname" id="unameBig">—</div><div class="usince" id="usinceBig"></div></div>
           </div>
-          <button class="btn-secondary" id="logoutBtn">Cerrar sesión</button>
         </div>
+
+        <div class="card">
+          <h2>Datos personales</h2>
+          <p class="sub">Opcional — solo tú puedes verlos</p>
+          <div class="row2">
+            <div class="field"><label>Nombre</label><input type="text" id="pFirst" placeholder="Nombre"></div>
+            <div class="field"><label>Apellido</label><input type="text" id="pLast" placeholder="Apellido"></div>
+          </div>
+          <div class="field"><label>Correo personal</label><input type="email" id="pEmail" placeholder="tucorreo@ejemplo.com"></div>
+          <div class="row2">
+            <div class="field"><label>Edad</label><input type="number" id="pAge" min="0" placeholder="Edad"></div>
+            <div class="field"><label>Trabajo</label><input type="text" id="pJob" placeholder="Ocupación"></div>
+          </div>
+          <div class="field"><label>Dirección</label><input type="text" id="pAddress" placeholder="Dirección"></div>
+          <button class="btn-primary" id="pSaveBtn">Guardar perfil</button>
+        </div>
+
+        <div class="card">
+          <h2>Colores de la app</h2>
+          <p class="sub">Personaliza los acentos — se aplican al instante</p>
+          <div class="theme-grid">
+            <div class="theme-swatch"><input type="color" id="theme_ink" value="#2B2340"><span>Principal</span></div>
+            <div class="theme-swatch"><input type="color" id="theme_gold" value="#C7963E"><span>Acento</span></div>
+            <div class="theme-swatch"><input type="color" id="theme_teal" value="#2F7A6B"><span>Positivo</span></div>
+            <div class="theme-swatch"><input type="color" id="theme_coral" value="#D24C3D"><span>Alerta</span></div>
+          </div>
+          <button class="btn-primary" id="themeSaveBtn">Guardar colores</button>
+          <button class="btn-secondary" id="themeResetBtn">Restablecer</button>
+        </div>
+
         <div class="card">
           <h2>Categorías</h2>
           <p class="sub">Añade o elimina categorías para tus gastos</p>
@@ -370,6 +447,11 @@
           </div>
           <button class="btn-primary" id="addCatBtn">Añadir categoría</button>
         </div>
+
+        <div class="card">
+          <h2>Cuenta</h2>
+          <button class="btn-secondary" id="logoutBtn" style="color:var(--coral); border-color:rgba(210,76,61,.4);">Cerrar sesión</button>
+        </div>
       </section>
     </main>
 
@@ -378,7 +460,7 @@
       <button class="tab-btn" data-tab="reportes"><svg viewBox="0 0 24 24"><path d="M4 19V10M11 19V4M18 19v-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Reportes</button>
       <button class="tab-btn" data-tab="metas"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/></svg>Metas</button>
       <button class="tab-btn" data-tab="historial"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>Historial</button>
-      <button class="tab-btn" data-tab="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z" stroke-linejoin="round"/></svg>Ajustes</button>
+      <button class="tab-btn" data-tab="perfil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke-linecap="round"/></svg>Perfil</button>
     </nav>
 
     <div class="toast" id="toast"></div>
@@ -387,33 +469,25 @@
 
 <script>
 /* =========================================================
-   MI RECIBO — v3, con Supabase como base de datos real
+   MI RECIBO — v4 (Supabase + perfil + temas + paneles movibles)
    ========================================================= */
 
-/* ------------------------------------------------------------
-   1) CONFIGURA AQUÍ TU PROYECTO DE SUPABASE
-   Los encuentras en: supabase.com -> tu proyecto -> Project
-   Settings -> API -> "Project URL" y "anon public" key.
-   ------------------------------------------------------------ */
 const SUPABASE_URL = 'https://nleoehnvwckmvdkacvyp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sZW9laG52d2NrbXZka2FjdnlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMDA5NTgsImV4cCI6MjEwMTU3Njk1OH0.1D-sGwEIAg8OLtiPXwi_E7-sWV1hJaFcm36K4YE2fxs';
-const FAKE_EMAIL_DOMAIN = 'mirecibo.local'; // truco para usar "usuario" en vez de email real
+const FAKE_EMAIL_DOMAIN = 'mirecibo.local';
 
 let sb = null;
 try{
-  if(SUPABASE_URL.includes('YOUR-PROJECT') || SUPABASE_ANON_KEY.includes('YOUR-ANON')){
-    throw new Error('missing-config');
-  }
+  if(SUPABASE_URL.includes('YOUR-PROJECT') || SUPABASE_ANON_KEY.includes('YOUR-ANON')) throw new Error('missing-config');
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }catch(e){
   document.getElementById('configWarning').style.display = 'block';
-  document.getElementById('configWarning').innerHTML =
-    'Falta configurar Supabase. Abre el archivo <code>gastos-app.html</code>, busca <code>SUPABASE_URL</code> y <code>SUPABASE_ANON_KEY</code> cerca del inicio del script, y pon ahí los datos de tu proyecto (Project Settings → API). También corre <code>supabase-schema.sql</code> en el SQL Editor de tu proyecto antes de usar la app.';
+  document.getElementById('configWarning').innerHTML = 'Falta configurar Supabase. Busca <code>SUPABASE_URL</code> y <code>SUPABASE_ANON_KEY</code> al inicio del script y pon los datos de tu proyecto.';
   document.getElementById('loadingScreen').style.display = 'none';
 }
 
 const DEFAULT_CATEGORIES = [
-  { name:'Comida',     color:'#D24C3D', keywords:['comida','restaurante','supermercado','mercado','cena','almuerzo','desayuno','cafe','café','bar','pizza','panaderia','panadería'] },
+  { name:'Comida',     color:'#D24C3D', keywords:['comida','restaurante','supermercado','mercado','cena','almuerzo','desayuno','cafe','café','bar','pizza','panaderia','panadería','starbucks'] },
   { name:'Transporte', color:'#3E7BC7', keywords:['taxi','uber','cabify','gasolina','gas','transporte','bus','autobus','metro','parking','peaje','tren','bicicleta'] },
   { name:'Ocio',       color:'#C7963E', keywords:['cine','netflix','ocio','salida','fiesta','concierto','videojuego','streaming','spotify','copas'] },
   { name:'Salud',      color:'#2F7A6B', keywords:['farmacia','medico','médico','salud','hospital','medicina','dentista','gimnasio'] },
@@ -423,15 +497,21 @@ const DEFAULT_CATEGORIES = [
 ];
 const PERIOD_LABELS = { daily:'Diario', weekly:'Semanal', biweekly:'Quincenal', monthly:'Mensual', quarterly:'Trimestral', annual:'Anual', custom:'Personalizado' };
 const MONTH_NAMES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DEFAULT_PANEL_ORDER = ['totals','category','trend','custom'];
+const DEFAULT_THEME = { ink:'#2B2340', gold:'#C7963E', teal:'#2F7A6B', coral:'#D24C3D' };
 
-let currentUser = null; // { id, displayName, createdAt }
+let currentUser = null;
 let categories = [];
 let expenses = [];
 let goals = [];
 let reportPresets = [];
+let profile = null;
 let histFilter = 'all';
 let cbSelectedCats = new Set();
 let charts = {};
+let editingGoals = new Set();
+let catChartType = 'bar';
+let catCompareEnabled = true;
 
 const catById = id => categories.find(c=>c.id===id) || { id:null, name:'Otros', color:'#8B849C' };
 const fmt = n => (n||0).toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
@@ -449,6 +529,16 @@ function showAuthError(id, msg){
   const el = document.getElementById(id);
   el.textContent = msg; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
 }
+
+/* ---------------- password eye toggles ---------------- */
+document.querySelectorAll('.eye-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const inp = document.getElementById(btn.dataset.target);
+    const showing = inp.type === 'text';
+    inp.type = showing ? 'password' : 'text';
+    btn.style.color = showing ? 'var(--ink-faint)' : 'var(--ink)';
+  });
+});
 
 /* ================= AUTH ================= */
 if(document.getElementById('tabLogin')){
@@ -487,17 +577,14 @@ if(document.getElementById('tabLogin')){
     if(p.length < 6){ showAuthError('regError','La contraseña debe tener al menos 6 caracteres.'); return; }
     if(p !== p2){ showAuthError('regError','Las contraseñas no coinciden.'); return; }
     const btn = document.getElementById('regBtn'); btn.disabled=true; btn.textContent='Creando…';
-    const { data, error } = await sb.auth.signUp({
-      email: usernameToEmail(u), password: p,
-      options:{ data:{ display_name: uRaw.trim() } }
-    });
+    const { data, error } = await sb.auth.signUp({ email: usernameToEmail(u), password: p, options:{ data:{ display_name: uRaw.trim() } } });
     btn.disabled=false; btn.textContent='Crear cuenta';
     if(error){
       showAuthError('regError', error.message.includes('registered') ? 'Ese usuario ya existe. Intenta iniciar sesión.' : 'No se pudo crear la cuenta: '+error.message);
       return;
     }
     if(!data.session){
-      showAuthError('regError','Cuenta creada, pero falta confirmar el correo. Ve a tu proyecto de Supabase → Authentication → Providers → Email y desactiva "Confirm email".');
+      showAuthError('regError','Cuenta creada, pero falta confirmar el correo. Ve a Supabase → Authentication → Providers → Email y desactiva "Confirm email".');
       return;
     }
     await afterAuth(data.user, true);
@@ -517,9 +604,14 @@ async function afterAuth(user, isNew){
   if(isNew){
     const inserts = DEFAULT_CATEGORIES.map(c=>({ name:c.name, color:c.color, keywords:c.keywords }));
     await sb.from('categories').insert(inserts);
+    await sb.from('profiles').insert({});
   }
 
   await loadAllData();
+  if(!profile){
+    const { data } = await sb.from('profiles').insert({}).select().single();
+    profile = data;
+  }
 
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').classList.add('visible');
@@ -532,21 +624,84 @@ async function afterAuth(user, isNew){
   fillCategorySelect();
   initSpeech();
   setDefaultReportDates();
+  fillProfileForm();
+  applyTheme(profile.theme);
+  applyPanelOrder(profile.report_order && profile.report_order.length ? profile.report_order : DEFAULT_PANEL_ORDER);
   renderAll();
 }
 
 async function loadAllData(){
-  const [catRes, expRes, goalRes, presetRes] = await Promise.all([
+  const [catRes, expRes, goalRes, presetRes, profRes] = await Promise.all([
     sb.from('categories').select('*').order('created_at', { ascending:true }),
     sb.from('expenses').select('*').order('created_at', { ascending:false }).limit(2000),
     sb.from('goals').select('*').order('created_at', { ascending:true }),
     sb.from('report_presets').select('*').order('created_at', { ascending:false }),
+    sb.from('profiles').select('*').maybeSingle(),
   ]);
   categories = catRes.data || [];
   expenses = (expRes.data || []).map(e=>({ id:e.id, amount:Number(e.amount), description:e.description, category_id:e.category_id, date:e.created_at }));
   goals = (goalRes.data || []).map(g=>({ id:g.id, label:g.label, period_type:g.period_type, custom_days:g.custom_days, amount:Number(g.amount), show_on_banner:g.show_on_banner }));
   reportPresets = presetRes.data || [];
+  profile = profRes.data || null;
 }
+
+/* ================= PROFILE ================= */
+function fillProfileForm(){
+  document.getElementById('pFirst').value = profile.first_name || '';
+  document.getElementById('pLast').value = profile.last_name || '';
+  document.getElementById('pEmail').value = profile.personal_email || '';
+  document.getElementById('pAge').value = profile.age || '';
+  document.getElementById('pJob').value = profile.job || '';
+  document.getElementById('pAddress').value = profile.address || '';
+}
+async function saveProfilePatch(patch){
+  const { data, error } = await sb.from('profiles').update(patch).eq('user_id', currentUser.id).select().single();
+  if(error){ showToast('No se pudo guardar', true); return false; }
+  profile = data; return true;
+}
+document.getElementById('pSaveBtn').addEventListener('click', async ()=>{
+  const patch = {
+    first_name: document.getElementById('pFirst').value.trim() || null,
+    last_name: document.getElementById('pLast').value.trim() || null,
+    personal_email: document.getElementById('pEmail').value.trim() || null,
+    age: document.getElementById('pAge').value ? parseInt(document.getElementById('pAge').value) : null,
+    job: document.getElementById('pJob').value.trim() || null,
+    address: document.getElementById('pAddress').value.trim() || null,
+  };
+  const ok = await saveProfilePatch(patch);
+  if(ok) showToast('Perfil guardado');
+});
+
+/* ---------------- theme ---------------- */
+function applyTheme(theme){
+  const t = Object.assign({}, DEFAULT_THEME, theme||{});
+  Object.keys(t).forEach(k=>{
+    document.documentElement.style.setProperty('--'+k, t[k]);
+    const el = document.getElementById('theme_'+k);
+    if(el) el.value = t[k];
+  });
+}
+document.getElementById('themeSaveBtn').addEventListener('click', async ()=>{
+  const theme = {
+    ink: document.getElementById('theme_ink').value,
+    gold: document.getElementById('theme_gold').value,
+    teal: document.getElementById('theme_teal').value,
+    coral: document.getElementById('theme_coral').value,
+  };
+  applyTheme(theme);
+  const ok = await saveProfilePatch({ theme });
+  if(ok) showToast('Colores guardados');
+});
+document.getElementById('themeResetBtn').addEventListener('click', async ()=>{
+  applyTheme(DEFAULT_THEME);
+  const ok = await saveProfilePatch({ theme: {} });
+  if(ok) showToast('Colores restablecidos');
+});
+['theme_ink','theme_gold','theme_teal','theme_coral'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', (e)=>{
+    document.documentElement.style.setProperty('--'+id.replace('theme_',''), e.target.value);
+  });
+});
 
 /* ================= CATEGORIES ================= */
 function fillCategorySelect(){
@@ -623,10 +778,7 @@ function goalRange(g, now){
   }
 }
 function goalSpent(g){ const [s,e] = goalRange(g); return sumSince(s,e); }
-function periodLabel(g){
-  if(g.period_type==='custom') return `Últimos ${g.custom_days||30} días`;
-  return PERIOD_LABELS[g.period_type] || g.period_type;
-}
+function periodLabel(g){ return g.period_type==='custom' ? `Últimos ${g.custom_days||30} días` : (PERIOD_LABELS[g.period_type] || g.period_type); }
 
 /* ---------------- count-up ---------------- */
 let lastTodayVal = 0;
@@ -672,19 +824,70 @@ function initSpeech(){
   recognition.onerror = ()=>{ recognizing=false; micBtn.classList.remove('listening'); status.innerHTML='No se pudo escuchar bien. Inténtalo de nuevo.'; };
   recognition.onresult = (ev)=> handleVoiceText(ev.results[0][0].transcript);
 }
+
+/* --- traductor de números en palabras (es) para cuando el navegador no transcribe dígitos --- */
+const NUM_UNIDADES = {cero:0,un:1,uno:1,una:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,
+  diez:10,once:11,doce:12,trece:13,catorce:14,quince:15,dieciseis:16,diecisiete:17,dieciocho:18,diecinueve:19,
+  veinte:20,veintiun:21,veintiuno:21,veintidos:22,veintitres:23,veinticuatro:24,veinticinco:25,veintiseis:26,veintisiete:27,veintiocho:28,veintinueve:29};
+const NUM_DECENAS = {treinta:30,cuarenta:40,cincuenta:50,sesenta:60,setenta:70,ochenta:80,noventa:90};
+const NUM_CENTENAS = {cien:100,ciento:100,doscientos:200,trescientos:300,cuatrocientos:400,quinientos:500,seiscientos:600,setecientos:700,ochocientos:800,novecientos:900};
+function stripAccents(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function wordsToNumber(originalTokens){
+  const tokens = originalTokens.map(t=>stripAccents(t.toLowerCase()));
+  let total=0, current=0, found=false, startIdx=-1, endIdx=-1;
+  for(let i=0;i<tokens.length;i++){
+    const w = tokens[i];
+    const isNum = NUM_UNIDADES.hasOwnProperty(w) || NUM_DECENAS.hasOwnProperty(w) || NUM_CENTENAS.hasOwnProperty(w) || w==='mil';
+    if(isNum){
+      if(!found){ startIdx=i; found=true; }
+      endIdx=i;
+      if(w==='mil'){ current = (current===0?1:current)*1000; total+=current; current=0; }
+      else if(NUM_CENTENAS.hasOwnProperty(w)) current += NUM_CENTENAS[w];
+      else if(NUM_DECENAS.hasOwnProperty(w)) current += NUM_DECENAS[w];
+      else current += NUM_UNIDADES[w];
+    } else if(w==='y' && found){
+      const next = tokens[i+1];
+      const nextIsNum = next && (NUM_UNIDADES.hasOwnProperty(next)||NUM_DECENAS.hasOwnProperty(next)||NUM_CENTENAS.hasOwnProperty(next)||next==='mil');
+      if(nextIsNum){ endIdx = i; continue; } else break;
+    } else if(found){ break; }
+  }
+  total += current;
+  if(!found) return null;
+  return { amount: total, startIdx, endIdx };
+}
+function parseAmountFromText(text){
+  const digitMatch = text.match(/(\d+(?:[.,]\d{1,2})?)/);
+  if(digitMatch){
+    return {
+      amount: parseFloat(digitMatch[0].replace(',','.')),
+      before: text.slice(0, digitMatch.index),
+      after: text.slice(digitMatch.index + digitMatch[0].length),
+    };
+  }
+  const tokens = text.split(/\s+/);
+  const w = wordsToNumber(tokens);
+  if(w){
+    return {
+      amount: w.amount,
+      before: tokens.slice(0, w.startIdx).join(' '),
+      after: tokens.slice(w.endIdx+1).join(' '),
+    };
+  }
+  return null;
+}
+
 function handleVoiceText(text){
   const status = document.getElementById('micStatus');
-  const match = text.match(/(\d+(?:[.,]\d{1,2})?)/);
-  const amount = match ? parseFloat(match[0].replace(',','.')) : null;
-  let description = text;
-  if(match) description = text.slice(0, match.index) + text.slice(match.index + match[0].length);
-  description = description.replace(/\b(euros?|dolares?|dólares?|pesos?|soles?|gaste|gasté|gasto|pague|pagué|de|en|por|un|una)\b/gi,' ').replace(/\s+/g,' ').trim();
+  const parsed = parseAmountFromText(text);
+  if(!parsed){ status.innerHTML = `Escuché: "<b>${text}</b>" — no detecté un importe. Prueba de nuevo o usa el formulario.`; return; }
+  let description = (parsed.before + ' ' + parsed.after)
+    .replace(/\b(euros?|dolares?|dólares?|pesos?|soles?|gaste|gasté|gasto|pague|pagué|de|en|por|un|una)\b/gi,' ')
+    .replace(/\s+/g,' ').trim();
   if(!description) description = 'Gasto';
   description = description.charAt(0).toUpperCase()+description.slice(1);
   const category_id = guessCategory(text);
-  if(amount === null){ status.innerHTML = `Escuché: "<b>${text}</b>" — no detecté un importe. Prueba de nuevo o usa el formulario.`; return; }
   status.innerHTML = `Escuché: "<b>${text}</b>"`;
-  showVoiceConfirm({amount, description, category_id});
+  showVoiceConfirm({amount: parsed.amount, description, category_id});
 }
 function showVoiceConfirm(data){
   const area = document.getElementById('confirmArea');
@@ -739,12 +942,11 @@ function checkBudgetWarnings(){
   }).join('');
 }
 
-/* ================= HEADER (personalizable) ================= */
+/* ================= HEADER ================= */
 function renderHeader(){
   document.getElementById('dateNow').textContent = new Date().toLocaleDateString('es-ES',{weekday:'short', day:'2-digit', month:'short'});
   const todayTotal = sumSince(startOfDay(new Date()), new Date());
   animateCountUp(document.getElementById('todayAmt'), todayTotal);
-
   const chips = document.getElementById('periodChips');
   const banner = goals.filter(g=>g.show_on_banner);
   if(banner.length===0){
@@ -759,7 +961,36 @@ function renderHeader(){
   }).join('');
 }
 
-/* ================= REPORTS ================= */
+/* ================= REPORTES: paneles movibles ================= */
+function applyPanelOrder(order){
+  const container = document.getElementById('reportsPanels');
+  order.forEach(id=>{
+    const el = container.querySelector(`[data-panel="${id}"]`);
+    if(el) container.appendChild(el);
+  });
+  document.querySelectorAll('.panel-move').forEach(pm=>{
+    const id = pm.querySelector('button').dataset.panel;
+    const idx = order.indexOf(id);
+    pm.querySelectorAll('button').forEach(b=>{
+      const dir = parseInt(b.dataset.dir);
+      b.disabled = (dir===-1 && idx<=0) || (dir===1 && idx>=order.length-1);
+    });
+  });
+}
+document.getElementById('reportsPanels').addEventListener('click', async (e)=>{
+  const btn = e.target.closest('.panel-move button');
+  if(!btn) return;
+  const dir = parseInt(btn.dataset.dir);
+  const panelId = btn.dataset.panel;
+  const order = (profile.report_order && profile.report_order.length ? profile.report_order.slice() : DEFAULT_PANEL_ORDER.slice());
+  const idx = order.indexOf(panelId);
+  const swapWith = idx + dir;
+  if(swapWith<0 || swapWith>=order.length) return;
+  [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+  applyPanelOrder(order);
+  await saveProfilePatch({ report_order: order });
+});
+
 function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
 function renderReports(){
   const todayTotal = sumSince(startOfDay(new Date()), new Date());
@@ -771,51 +1002,68 @@ function renderReports(){
     <div class="stat-box"><div class="n">${fmt(weekTotal)}</div><div class="l">Esta semana</div></div>
     <div class="stat-box"><div class="n">${fmt(monthTotal)}</div><div class="l">Este mes</div></div>
     <div class="stat-box"><div class="n">${fmt(yearTotal)}</div><div class="l">Este año</div></div>`;
-  renderCategoryDonut(); renderCompareChart(); renderTrendChart();
+  renderCategorySection();
+  renderTrendChart();
 }
-function renderCategoryDonut(){
-  const monthStart = startOfMonth(new Date()).getTime();
-  const monthExpenses = expenses.filter(e=>new Date(e.date).getTime()>=monthStart);
-  const byCat = {};
-  monthExpenses.forEach(e=>{ byCat[e.category_id] = (byCat[e.category_id]||0)+e.amount; });
-  const catsUsed = categories.filter(c=>byCat[c.id]>0).sort((a,b)=>byCat[b.id]-byCat[a.id]);
-  const ledger = document.getElementById('catLedger');
-  ledger.innerHTML = catsUsed.length===0 ? '<div class="empty-state">Aún no hay gastos este mes</div>' :
-    catsUsed.map(c=>`<div class="ledger-row"><span class="name"><span class="cat-dot" style="background:${c.color}"></span>${c.name}</span><span class="val">${fmt(byCat[c.id])}</span></div>`).join('');
-  destroyChart('cat');
-  if(catsUsed.length>0){
-    charts.cat = new Chart(document.getElementById('catChart'), {
-      type:'doughnut',
-      data:{ labels: catsUsed.map(c=>c.name), datasets:[{ data: catsUsed.map(c=>byCat[c.id]), backgroundColor: catsUsed.map(c=>c.color), borderWidth:2, borderColor:'#fff' }] },
-      options:{ cutout:'62%', animation:{ animateRotate:true, duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } } }
-    });
-  }
-}
+
 function sumForRangeByCat(start, end){
   const s=start.getTime(), en=end.getTime(); const out={};
   expenses.forEach(e=>{ const t=new Date(e.date).getTime(); if(t>=s && t<en) out[e.category_id]=(out[e.category_id]||0)+e.amount; });
   return out;
 }
-function renderCompareChart(){
-  const now = new Date();
-  const thisMonthStart = startOfMonth(now);
-  const prevMonthStart = new Date(thisMonthStart); prevMonthStart.setMonth(prevMonthStart.getMonth()-1);
-  const thisData = sumForRangeByCat(thisMonthStart, new Date());
-  const prevData = sumForRangeByCat(prevMonthStart, thisMonthStart);
-  const activeCats = categories.filter(c=> (thisData[c.id]||0) > 0 || (prevData[c.id]||0) > 0 ).slice(0,7);
-  destroyChart('compare');
-  const canvas = document.getElementById('compareChart');
-  if(activeCats.length===0){ canvas.style.display='none'; return; }
-  canvas.style.display='block';
-  charts.compare = new Chart(canvas, {
-    type:'bar',
-    data:{ labels: activeCats.map(c=>c.name), datasets:[
-      { label:'Mes anterior', data: activeCats.map(c=>prevData[c.id]||0), backgroundColor:'#D9D5C8', borderRadius:6, maxBarThickness:22 },
-      { label:'Este mes', data: activeCats.map(c=>thisData[c.id]||0), backgroundColor:'#2B2340', borderRadius:6, maxBarThickness:22 },
-    ]},
-    options:{ animation:{ duration:650, easing:'easeOutCubic' }, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } },
-      scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:10.5 } } } } }
+document.getElementById('catTypeChips').querySelectorAll('.btn-chip').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#catTypeChips .btn-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    catChartType = btn.dataset.type;
+    document.getElementById('catCompareRow').style.display = catChartType==='doughnut' ? 'none' : 'flex';
+    renderCategorySection();
   });
+});
+document.getElementById('catCompareChk').addEventListener('change', (e)=>{
+  catCompareEnabled = e.target.checked;
+  renderCategorySection();
+});
+function renderCategorySection(){
+  const now = new Date();
+  const thisStart = startOfMonth(now);
+  const prevStart = new Date(thisStart); prevStart.setMonth(prevStart.getMonth()-1);
+  const thisData = sumForRangeByCat(thisStart, new Date());
+  const prevData = sumForRangeByCat(prevStart, thisStart);
+
+  const ledgerCats = categories.filter(c=>thisData[c.id]>0).sort((a,b)=>thisData[b.id]-thisData[a.id]);
+  document.getElementById('catLedger').innerHTML = ledgerCats.length===0 ? '' :
+    ledgerCats.map(c=>`<div class="ledger-row"><span class="name"><span class="cat-dot" style="background:${c.color}"></span>${c.name}</span><span class="val">${fmt(thisData[c.id])}</span></div>`).join('');
+
+  let cats;
+  if(catChartType==='doughnut') cats = ledgerCats;
+  else cats = categories.filter(c=>(thisData[c.id]||0)>0 || (catCompareEnabled && (prevData[c.id]||0)>0)).slice(0,8);
+
+  destroyChart('category');
+  const wrap = document.getElementById('categoryChartWrap');
+  const noData = document.getElementById('catNoData');
+  if(cats.length===0){ wrap.style.display='none'; noData.style.display='block'; return; }
+  wrap.style.display='block'; noData.style.display='none';
+
+  const ctx = document.getElementById('categoryChartCanvas');
+  if(catChartType==='doughnut'){
+    charts.category = new Chart(ctx, {
+      type:'doughnut',
+      data:{ labels: cats.map(c=>c.name), datasets:[{ data: cats.map(c=>thisData[c.id]||0), backgroundColor: cats.map(c=>c.color), borderWidth:2, borderColor:'#fff' }] },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', animation:{ animateRotate:true, duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } } }
+    });
+  } else {
+    const datasets = [];
+    if(catCompareEnabled) datasets.push({ label:'Mes anterior', data: cats.map(c=>prevData[c.id]||0), backgroundColor:'#D9D5C8', borderColor:'#D9D5C8', borderRadius:6, maxBarThickness:22, tension:.35, fill:false, pointRadius:catChartType==='line'?3:0 });
+    datasets.push({ label:'Este mes', data: cats.map(c=>thisData[c.id]||0), backgroundColor:'#2B2340', borderColor:'#2B2340', borderRadius:6, maxBarThickness:22, tension:.35, fill:false, pointRadius:catChartType==='line'?3:0 });
+    charts.category = new Chart(ctx, {
+      type: catChartType==='line' ? 'line' : 'bar',
+      data:{ labels: cats.map(c=>c.name), datasets },
+      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' },
+        plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } },
+        scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:10.5 } } } } }
+    });
+  }
 }
 function renderTrendChart(){
   const months = [];
@@ -829,7 +1077,7 @@ function renderTrendChart(){
   charts.trend = new Chart(document.getElementById('trendChart'), {
     type:'bar',
     data:{ labels: months.map(m=>m.label), datasets:[{ data: months.map(m=>m.total), backgroundColor: months.map((m,i)=> i===months.length-1 ? '#C7963E' : '#2B2340'), borderRadius:7, maxBarThickness:30 }] },
-    options:{ animation:{ duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } },
+    options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } },
       scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:11 } } } } }
   });
 }
@@ -879,25 +1127,37 @@ function renderCustomReport(cfg){
   destroyChart('custom');
   if(r.count===0){ out.innerHTML = '<div class="empty-state">No hay gastos en ese rango con esos filtros</div>'; return; }
   out.innerHTML = `
-    <div class="totals-grid" style="margin-top:14px;">
+    <div class="totals-grid" style="margin-top:14px; margin-bottom:14px;">
       <div class="stat-box"><div class="n">${fmt(r.total)}</div><div class="l">Total</div></div>
       <div class="stat-box"><div class="n">${r.count}</div><div class="l">Movimientos</div></div>
     </div>
-    <canvas id="customChartCanvas" height="220"></canvas>
-    <button class="btn-secondary" id="savePresetBtn">Guardar este reporte</button>`;
+    <div class="chart-wrap"><canvas id="customChartCanvas"></canvas></div>
+    <button class="btn-secondary" id="savePresetToggle">Guardar este reporte</button>
+    <div id="savePresetForm" style="display:none; margin-top:10px;">
+      <div class="field"><label>Nombre del reporte</label><input type="text" id="presetNameInput" placeholder="Ej. Gastos de comida - mayo"></div>
+      <button class="btn-primary" id="presetNameSave">Guardar</button>
+    </div>`;
   const ctx = document.getElementById('customChartCanvas'); const type = cfg.type;
   charts.custom = new Chart(ctx, {
     type: type,
     data:{ labels: r.labels, datasets:[{ data: r.data, backgroundColor: type==='line' ? 'rgba(43,35,64,.12)' : r.colors, borderColor:'#2B2340', borderWidth: type==='line'?2:0, borderRadius: type==='bar'?6:0, fill:type==='line', tension:.35, pointRadius:type==='line'?3:0 }] },
-    options:{ animation:{ duration:650, easing:'easeOutCubic' }, plugins:{ legend:{ display: type==='doughnut' } },
+    options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' }, plugins:{ legend:{ display: type==='doughnut' } },
       scales: type==='doughnut' ? {} : { y:{ beginAtZero:true, grid:{ color:'#EDEBE3' } }, x:{ grid:{ display:false } } } }
   });
-  document.getElementById('savePresetBtn').addEventListener('click', async ()=>{
-    const name = prompt('Nombre para este reporte:', `Reporte ${cfg.from} a ${cfg.to}`);
-    if(!name) return;
+  document.getElementById('savePresetToggle').addEventListener('click', ()=>{
+    const f = document.getElementById('savePresetForm');
+    f.style.display = f.style.display==='none' ? 'block' : 'none';
+    if(f.style.display==='block') document.getElementById('presetNameInput').focus();
+  });
+  document.getElementById('presetNameSave').addEventListener('click', async ()=>{
+    const name = document.getElementById('presetNameInput').value.trim();
+    if(!name){ showToast('Ponle un nombre al reporte'); return; }
     const { data, error } = await sb.from('report_presets').insert({ name, config: cfg }).select().single();
-    if(error){ showToast('No se pudo guardar', true); return; }
-    reportPresets.unshift(data); renderSavedReports(); showToast('Reporte guardado');
+    if(error){ showToast('No se pudo guardar el reporte', true); return; }
+    reportPresets.unshift(data);
+    renderSavedReports();
+    document.getElementById('savePresetForm').style.display='none';
+    showToast('Reporte "'+name+'" guardado');
   });
 }
 document.getElementById('cbGenBtn').addEventListener('click', ()=>{
@@ -908,7 +1168,7 @@ document.getElementById('cbGenBtn').addEventListener('click', ()=>{
 function renderSavedReports(){
   const wrap = document.getElementById('savedReports');
   if(!reportPresets.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML = '<div class="sub" style="margin-bottom:6px;">Reportes guardados</div>' + reportPresets.map(rp=>`<div class="report-preset"><span>${rp.name}</span><button data-id="${rp.id}">Ver</button></div>`).join('');
+  wrap.innerHTML = '<div class="sub" style="margin-bottom:6px;">Reportes guardados ('+reportPresets.length+')</div>' + reportPresets.map(rp=>`<div class="report-preset"><span>${rp.name}</span><button data-id="${rp.id}">Ver</button></div>`).join('');
   wrap.querySelectorAll('button[data-id]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const rp = reportPresets.find(x=>x.id===btn.dataset.id); if(!rp) return;
@@ -920,17 +1180,20 @@ function renderSavedReports(){
   });
 }
 
-/* ================= GOALS (metas) ================= */
+/* ================= GOALS ================= */
 document.getElementById('ngType').addEventListener('change', (e)=>{
-  document.getElementById('ngDaysWrap').style.display = e.target.value==='custom' ? 'block' : 'none';
+  const isCustom = e.target.value==='custom';
+  document.getElementById('ngDaysWrap').style.display = isCustom ? 'block' : 'none';
+  document.getElementById('ngLabelWrap').style.display = isCustom ? 'block' : 'none';
 });
 document.getElementById('ngSaveBtn').addEventListener('click', async ()=>{
-  const label = document.getElementById('ngLabel').value.trim();
   const period_type = document.getElementById('ngType').value;
-  const custom_days = period_type==='custom' ? (parseInt(document.getElementById('ngDays').value)||30) : null;
+  const isCustom = period_type==='custom';
+  const label = isCustom ? document.getElementById('ngLabel').value.trim() : PERIOD_LABELS[period_type];
+  const custom_days = isCustom ? (parseInt(document.getElementById('ngDays').value)||30) : null;
   const amount = parseFloat(document.getElementById('ngAmount').value);
   const show_on_banner = document.getElementById('ngBanner').checked;
-  if(!label){ showToast('Ponle un nombre al tope'); return; }
+  if(isCustom && !label){ showToast('Ponle un nombre al tope personalizado'); return; }
   if(!amount || amount<=0){ showToast('Introduce un importe de tope válido'); return; }
   const { data, error } = await sb.from('goals').insert({ label, period_type, custom_days, amount, show_on_banner }).select().single();
   if(error){ showToast('No se pudo crear el tope', true); return; }
@@ -943,6 +1206,22 @@ function renderGoals(){
   const wrap = document.getElementById('goalsList');
   if(goals.length===0){ wrap.innerHTML = '<div class="empty-state">Aún no has creado ningún tope. Crea el primero abajo.</div>'; return; }
   wrap.innerHTML = goals.map(g=>{
+    if(editingGoals.has(g.id)){
+      return `
+        <div class="goal-card">
+          <div class="goal-head"><span class="gname">${g.label} <span style="color:var(--ink-faint); font-weight:400;">· ${periodLabel(g)}</span></span></div>
+          <div class="goal-edit-row">
+            <div class="field"><label>Importe tope</label><input type="number" min="0" step="1" class="amount-input" id="ge-amount-${g.id}" value="${g.amount}"></div>
+            ${g.period_type==='custom' ? `<div class="field"><label>Nº días</label><input type="number" min="1" id="ge-days-${g.id}" value="${g.custom_days||30}"></div>` : ''}
+          </div>
+          <div class="goal-foot">
+            <div class="goal-foot-actions">
+              <button class="goal-edit-save" data-id="${g.id}">Guardar</button>
+              <button class="goal-edit-cancel" data-id="${g.id}">Cancelar</button>
+            </div>
+          </div>
+        </div>`;
+    }
     const spent = goalSpent(g); const pct = g.amount>0 ? Math.min(spent/g.amount,1) : 0;
     const color = pct>=1 ? 'var(--coral)' : (pct>=0.8 ? 'var(--amber)' : 'var(--teal)');
     const statusTxt = pct>=1 ? `Superado por ${fmt(spent-g.amount)}` : `Te quedan ${fmt(g.amount-spent)} (${Math.round(pct*100)}% usado)`;
@@ -953,11 +1232,15 @@ function renderGoals(){
         <div class="goal-status">${statusTxt}</div>
         <div class="goal-foot">
           <label><input type="checkbox" class="goal-banner-toggle" data-id="${g.id}" ${g.show_on_banner?'checked':''}> Mostrar en cabecera</label>
-          <button class="goal-del" data-id="${g.id}" aria-label="Eliminar tope">✕</button>
+          <div class="goal-foot-actions">
+            <button class="goal-edit-btn" data-id="${g.id}">Editar</button>
+            <button class="goal-del" data-id="${g.id}" aria-label="Eliminar tope">✕</button>
+          </div>
         </div>
       </div>`;
   }).join('');
   requestAnimationFrame(()=>{ document.querySelectorAll('.goal-bar-fill').forEach(el=>{ el.style.width = el.dataset.w+'%'; }); });
+
   wrap.querySelectorAll('.goal-banner-toggle').forEach(cb=>{
     cb.addEventListener('change', async (e)=>{
       const id = e.target.dataset.id; const val = e.target.checked;
@@ -973,6 +1256,32 @@ function renderGoals(){
       goals = goals.filter(g=>g.id!==btn.dataset.id);
       renderAll();
       showToast('Tope eliminado');
+    });
+  });
+  wrap.querySelectorAll('.goal-edit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingGoals.add(btn.dataset.id); renderGoals(); });
+  });
+  wrap.querySelectorAll('.goal-edit-cancel').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingGoals.delete(btn.dataset.id); renderGoals(); });
+  });
+  wrap.querySelectorAll('.goal-edit-save').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.id;
+      const g = goals.find(x=>x.id===id); if(!g) return;
+      const amountEl = document.getElementById('ge-amount-'+id);
+      const amount = parseFloat(amountEl.value);
+      if(!amount || amount<=0){ showToast('Importe no válido'); return; }
+      const patch = { amount };
+      if(g.period_type==='custom'){
+        const daysEl = document.getElementById('ge-days-'+id);
+        patch.custom_days = parseInt(daysEl.value)||30;
+      }
+      const { error } = await sb.from('goals').update(patch).eq('id', id);
+      if(error){ showToast('No se pudo actualizar', true); return; }
+      Object.assign(g, patch);
+      editingGoals.delete(id);
+      renderAll();
+      showToast('Tope actualizado');
     });
   });
 }
@@ -1037,7 +1346,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.classList.add('active');
     document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
     if(btn.dataset.tab==='reportes') renderReports();
-    if(btn.dataset.tab==='ajustes') renderCatManage();
+    if(btn.dataset.tab==='perfil') renderCatManage();
   });
 });
 
