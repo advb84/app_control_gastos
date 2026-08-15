@@ -160,6 +160,8 @@
   .tx-amt{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14px;}
   .tx-del{background:none; border:none; color:var(--ink-faint); font-size:16px; cursor:pointer; padding:2px 4px; transition:color .15s, transform .15s;}
   .tx-del:active{ transform:scale(1.3); color:var(--coral); }
+  .tx-edit{background:none; border:none; color:var(--ink-faint); font-size:14px; cursor:pointer; padding:2px 4px; transition:color .15s, transform .15s;}
+  .tx-edit:active{ transform:scale(1.2); color:var(--ink); }
   .empty-state{text-align:center; padding:30px 10px; color:var(--ink-faint); font-size:13px;}
 
   .cat-manage-row{ display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); }
@@ -367,7 +369,7 @@
           <p class="sub">Crea los topes que necesites — diario, semanal, quincenal, mensual, trimestral, anual o un número de días a tu medida. Marca cuáles quieres ver en la cabecera.</p>
           <div id="goalsList"></div>
           <div class="new-goal-form">
-            <div class="field" id="ngLabelWrap" style="display:none;"><label>Nombre del tope</label><input type="text" id="ngLabel" placeholder="Ej. Tope de comida"></div>
+            <div class="field" id="ngLabelWrap"><label>Nombre del tope (opcional)</label><input type="text" id="ngLabel" placeholder="Déjalo vacío para usar el nombre automático"></div>
             <div class="row2">
               <div class="field"><label>Periodo</label>
                 <select id="ngType">
@@ -1304,23 +1306,19 @@ function renderSavedReports(){
 document.getElementById('ngType').addEventListener('change', (e)=>{
   const isCustom = e.target.value==='custom';
   document.getElementById('ngDaysWrap').style.display = isCustom ? 'block' : 'none';
-  document.getElementById('ngLabelWrap').style.display = isCustom ? 'block' : 'none';
 });
 document.getElementById('ngSaveBtn').addEventListener('click', async ()=>{
   const period_type = document.getElementById('ngType').value;
   const isCustom = period_type==='custom';
   const category_id = document.getElementById('ngCategory').value || null;
   const catObj = category_id ? categories.find(c=>c.id===category_id) : null;
-  let label;
-  if(isCustom){
-    label = document.getElementById('ngLabel').value.trim();
-  } else {
-    label = catObj ? (catObj.name + ' · ' + PERIOD_LABELS[period_type]) : PERIOD_LABELS[period_type];
-  }
   const custom_days = isCustom ? (parseInt(document.getElementById('ngDays').value)||30) : null;
+  const periodTxt = isCustom ? `Personalizado (${custom_days} días)` : PERIOD_LABELS[period_type];
+  const defaultLabel = catObj ? (catObj.name + ' · ' + periodTxt) : periodTxt;
+  const customLabel = document.getElementById('ngLabel').value.trim();
+  const label = customLabel || defaultLabel;
   const amount = parseFloat(document.getElementById('ngAmount').value);
   const show_on_banner = document.getElementById('ngBanner').checked;
-  if(isCustom && !label){ showToast('Ponle un nombre al tope personalizado'); return; }
   if(!amount || amount<=0){ showToast('Introduce un importe de tope válido'); return; }
   const { data, error } = await sb.from('goals').insert({ label, period_type, custom_days, amount, show_on_banner, category_id }).select().single();
   if(error){ showToast('No se pudo crear el tope', true); return; }
@@ -1336,7 +1334,8 @@ function renderGoals(){
     if(editingGoals.has(g.id)){
       return `
         <div class="goal-card">
-          <div class="goal-head"><span class="gname">${g.label} <span style="color:var(--ink-faint); font-weight:400;">· ${periodLabel(g)}</span></span></div>
+          <div class="goal-head"><span class="gname" style="color:var(--ink-faint); font-weight:400;">${periodLabel(g)}</span></div>
+          <div class="field"><label>Nombre del tope</label><input type="text" id="ge-label-${g.id}" value="${String(g.label).replace(/"/g,'&quot;')}"></div>
           <div class="goal-edit-row">
             <div class="field"><label>Importe tope</label><input type="number" min="0" step="1" class="amount-input" id="ge-amount-${g.id}" value="${g.amount}"></div>
             ${g.period_type==='custom' ? `<div class="field"><label>Nº días</label><input type="number" min="1" id="ge-days-${g.id}" value="${g.custom_days||30}"></div>` : ''}
@@ -1398,7 +1397,9 @@ function renderGoals(){
       const amountEl = document.getElementById('ge-amount-'+id);
       const amount = parseFloat(amountEl.value);
       if(!amount || amount<=0){ showToast('Importe no válido'); return; }
-      const patch = { amount };
+      const labelEl = document.getElementById('ge-label-'+id);
+      const newLabel = labelEl.value.trim() || g.label;
+      const patch = { amount, label: newLabel };
       if(g.period_type==='custom'){
         const daysEl = document.getElementById('ge-days-'+id);
         patch.custom_days = parseInt(daysEl.value)||30;
@@ -1422,6 +1423,7 @@ function renderHistFilters(){
     btn.addEventListener('click', ()=>{ histFilter = btn.dataset.f; renderHistFilters(); renderHistList(); });
   });
 }
+let editingExpenses = new Set();
 function renderHistList(){
   const wrap = document.getElementById('histList');
   const items = histFilter==='all' ? expenses : expenses.filter(e=>e.category_id===histFilter);
@@ -1429,14 +1431,79 @@ function renderHistList(){
   wrap.innerHTML = items.map((e,i)=>{
     const c = catById(e.category_id); const d = new Date(e.date);
     const dateTxt = d.toLocaleDateString('es-ES',{day:'2-digit', month:'short'}) + ' · ' + d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+
+    if(editingExpenses.has(e.id)){
+      return `
+        <div class="tx-item" style="display:block; padding:14px 0;">
+          <div class="row2">
+            <div class="field" style="margin-bottom:8px;"><label>Importe</label><input type="number" step="0.01" min="0" class="amount-input" id="tx-amount-${e.id}" value="${e.amount}"></div>
+            <div class="field" style="margin-bottom:8px;"><label>Categoría</label><select id="tx-cat-${e.id}">${categories.map(c2=>`<option value="${c2.id}" ${c2.id===e.category_id?'selected':''}>${c2.name}</option>`).join('')}</select></div>
+          </div>
+          <div class="row2">
+            <div class="field" style="margin-bottom:8px;"><label>Descripción</label><input type="text" id="tx-desc-${e.id}" value="${String(e.description).replace(/"/g,'&quot;')}"></div>
+            <div class="field" style="margin-bottom:8px;"><label>Fecha</label><input type="date" id="tx-date-${e.id}" value="${d.toISOString().slice(0,10)}" max="${new Date().toISOString().slice(0,10)}"></div>
+          </div>
+          <div class="goal-foot-actions" style="justify-content:flex-end;">
+            <button class="tx-edit-save" data-id="${e.id}">Guardar</button>
+            <button class="tx-edit-cancel" data-id="${e.id}">Cancelar</button>
+          </div>
+        </div>`;
+    }
     return `
       <div class="tx-item" style="animation-delay:${Math.min(i,8)*0.03}s">
         <div class="tx-left"><span class="tx-cat-dot" style="background:${c.color}"></span>
           <div><div class="tx-desc">${e.description}</div><div class="tx-meta">${c.name} · ${dateTxt}</div></div>
         </div>
-        <div class="tx-right"><span class="tx-amt">${fmt(e.amount)}</span><button class="tx-del" data-id="${e.id}" aria-label="Eliminar">✕</button></div>
+        <div class="tx-right"><span class="tx-amt">${fmt(e.amount)}</span>
+          <button class="tx-edit" data-id="${e.id}" aria-label="Editar" title="Editar">✎</button>
+          <button class="tx-del" data-id="${e.id}" aria-label="Eliminar">✕</button>
+        </div>
       </div>`;
   }).join('');
+
+  wrap.querySelectorAll('.tx-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingExpenses.add(btn.dataset.id); renderHistList(); });
+  });
+  wrap.querySelectorAll('.tx-edit-cancel').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingExpenses.delete(btn.dataset.id); renderHistList(); });
+  });
+  wrap.querySelectorAll('.tx-edit-save').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.id;
+      const e = expenses.find(x=>x.id===id); if(!e) return;
+      const amountInp = document.getElementById('tx-amount-'+id);
+      const catInp = document.getElementById('tx-cat-'+id);
+      const descInp = document.getElementById('tx-desc-'+id);
+      const dateInp = document.getElementById('tx-date-'+id);
+      const newAmount = parseFloat(amountInp.value);
+      const newCategoryId = catInp.value;
+      const newDesc = descInp.value.trim() || 'Gasto';
+      const newDateStr = dateInp.value;
+      if(!newAmount || newAmount<=0){ showToast('Introduce un importe válido'); return; }
+      if(!newDateStr){ showToast('Elige una fecha válida'); return; }
+      // conserva la hora original, solo cambia el día
+      const oldDate = new Date(e.date);
+      const newDate = new Date(newDateStr+'T00:00:00');
+      newDate.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds(), oldDate.getMilliseconds());
+
+      btn.disabled = true; btn.textContent = 'Guardando…';
+      const { data, error } = await sb.from('expenses')
+        .update({ amount: Math.round(newAmount*100)/100, category_id: newCategoryId, description: newDesc, created_at: newDate.toISOString() })
+        .eq('id', id).select().single();
+      if(error){ showToast('No se pudo guardar el cambio', true); btn.disabled=false; btn.textContent='Guardar'; return; }
+
+      // Se actualiza el mismo registro (mismo id) — nada se borra ni se duplica.
+      e.amount = Number(data.amount);
+      e.category_id = data.category_id;
+      e.description = data.description;
+      e.date = data.created_at;
+      expenses.sort((a,b)=> new Date(b.date) - new Date(a.date));
+      editingExpenses.delete(id);
+      renderAll();
+      showToast('Gasto actualizado');
+    });
+  });
+
   wrap.querySelectorAll('.tx-del').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       await sb.from('expenses').delete().eq('id', btn.dataset.id);
