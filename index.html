@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
@@ -401,6 +403,15 @@
           <p class="sub">Descarga tus gastos en formato CSV</p>
           <button class="btn-secondary" id="exportBtn">Descargar CSV</button>
           <button class="btn-secondary" id="clearBtn" style="color:var(--coral); border-color:rgba(210,76,61,.4);">Borrar mi historial</button>
+        </div>
+        <div class="card">
+          <h2>Importar gastos</h2>
+          <p class="sub">Carga inicial desde un archivo CSV o Excel — columnas: fecha, categoría, descripción, importe (en cualquier orden, y puedes usar mayúsculas/minúsculas)</p>
+          <input type="file" id="importFile" accept=".csv,.xlsx,.xls" style="display:none;">
+          <button class="btn-secondary" id="importFileBtn">Elegir archivo (.csv / .xlsx)</button>
+          <button class="btn-secondary" id="downloadTemplateBtn">Descargar plantilla de ejemplo</button>
+          <div id="importStatus" class="sub" style="margin-top:10px; margin-bottom:0;"></div>
+          <div id="importPreview"></div>
         </div>
       </section>
 
@@ -1452,6 +1463,195 @@ document.getElementById('clearBtn').addEventListener('click', async ()=>{
   expenses = [];
   renderAll();
   showToast('Historial borrado');
+});
+
+/* ================= IMPORTAR GASTOS (CSV / Excel) ================= */
+const IMPORT_ALIASES = {
+  date: ['fecha','date','dia','día'],
+  amount: ['importe','monto','amount','valor','precio','cantidad'],
+  description: ['descripcion','descripción','description','concepto','detalle','nota'],
+  category: ['categoria','categoría','category','rubro'],
+};
+let importParsedRows = null;
+
+function normKey(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function findFieldValue(row, aliasList){
+  const keys = Object.keys(row);
+  for(const k of keys){
+    if(aliasList.includes(normKey(k))) return row[k];
+  }
+  return undefined;
+}
+function parseImportAmount(raw){
+  if(raw===undefined || raw===null || raw==='') return null;
+  if(typeof raw === 'number') return raw;
+  let s = String(raw).trim().replace(/[€$\s]/g,'');
+  // si tiene coma y punto, asumimos punto=miles y coma=decimal (formato es-ES): 1.234,56
+  if(s.includes(',') && s.includes('.')){
+    s = s.replace(/\./g,'').replace(',', '.');
+  } else if(s.includes(',')){
+    s = s.replace(',', '.');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? null : Math.abs(n);
+}
+function parseImportDate(raw){
+  if(raw===undefined || raw===null || raw==='') return null;
+  if(raw instanceof Date && !isNaN(raw)) return raw;
+  const s = String(raw).trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m) return new Date(+m[3], +m[2]-1, +m[1]); // DD/MM/YYYY
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+function normalizeImportRows(rawRows){
+  const today = new Date();
+  return rawRows.map((row, i)=>{
+    const rawDate = findFieldValue(row, IMPORT_ALIASES.date);
+    const rawAmount = findFieldValue(row, IMPORT_ALIASES.amount);
+    const rawDesc = findFieldValue(row, IMPORT_ALIASES.description);
+    const rawCat = findFieldValue(row, IMPORT_ALIASES.category);
+
+    const warnings = [];
+    let dateObj = parseImportDate(rawDate);
+    if(!dateObj){ dateObj = today; warnings.push('fecha no reconocida, se usó hoy'); }
+    if(dateObj > today){ warnings.push('fecha futura'); }
+
+    const amount = parseImportAmount(rawAmount);
+    if(amount===null || amount<=0) warnings.push('importe inválido — fila omitida');
+
+    const description = (rawDesc && String(rawDesc).trim()) ? String(rawDesc).trim() : 'Gasto importado';
+
+    let category_id = null;
+    if(rawCat && String(rawCat).trim()){
+      const found = categories.find(c=>normKey(c.name)===normKey(rawCat));
+      if(found) category_id = found.id;
+      else warnings.push(`categoría "${rawCat}" no existe, se usó "Otros"`);
+    }
+    if(!category_id){
+      const otros = categories.find(c=>c.name==='Otros');
+      category_id = otros ? otros.id : (categories[0] ? categories[0].id : null);
+    }
+
+    return {
+      rowIndex: i+1, amount, description, category_id,
+      dateObj, dateStr: dateObj.toISOString().slice(0,10),
+      valid: amount!==null && amount>0,
+      warnings,
+    };
+  });
+}
+
+function renderImportPreview(rows){
+  const wrap = document.getElementById('importPreview');
+  const valid = rows.filter(r=>r.valid);
+  const invalid = rows.filter(r=>!r.valid);
+  const withWarnings = valid.filter(r=>r.warnings.length>0);
+
+  let html = `<div class="warn-banner amberish" style="margin-top:14px;">
+    <span>${valid.length} de ${rows.length} filas listas para importar.${invalid.length? ` ${invalid.length} se omitirán por no tener un importe válido.`:''}${withWarnings.length? ` ${withWarnings.length} tienen alguna advertencia (revísalas abajo) pero se importarán igual.`:''}</span>
+  </div>`;
+  html += '<div style="max-height:280px; overflow-y:auto; margin-bottom:12px;">';
+  html += rows.slice(0,50).map(r=>{
+    const c = catById(r.category_id);
+    const icon = !r.valid ? '✕' : (r.warnings.length ? '◐' : '✓');
+    const color = !r.valid ? 'var(--coral)' : (r.warnings.length ? 'var(--amber)' : 'var(--teal)');
+    return `<div class="ledger-row"><span class="name"><b style="color:${color}; margin-right:8px;">${icon}</b>${r.dateStr} · ${r.description}${r.valid? ' · '+fmt(r.amount)+' · '+c.name : ''}${r.warnings.length? ' <span style="color:var(--ink-faint);">('+r.warnings.join(', ')+')</span>' : ''}</span></div>`;
+  }).join('');
+  if(rows.length>50) html += `<div class="empty-state">...y ${rows.length-50} filas más</div>`;
+  html += '</div>';
+  html += `<button class="btn-primary" id="confirmImportBtn">Importar ${valid.length} gastos</button>
+    <button class="btn-secondary" id="cancelImportBtn">Cancelar</button>`;
+  wrap.innerHTML = html;
+
+  document.getElementById('cancelImportBtn').addEventListener('click', ()=>{
+    importParsedRows = null;
+    wrap.innerHTML = '';
+    document.getElementById('importFile').value = '';
+    document.getElementById('importStatus').textContent = '';
+  });
+  document.getElementById('confirmImportBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('confirmImportBtn');
+    btn.disabled = true; btn.textContent = 'Importando…';
+    const toInsert = valid.map(r=>({
+      amount: Math.round(r.amount*100)/100,
+      description: r.description,
+      category_id: r.category_id,
+      created_at: r.dateObj.toISOString(),
+    }));
+    let inserted = 0, failed = 0;
+    const chunkSize = 200;
+    for(let i=0;i<toInsert.length;i+=chunkSize){
+      const chunk = toInsert.slice(i, i+chunkSize);
+      const { data, error } = await sb.from('expenses').insert(chunk).select();
+      if(error){ failed += chunk.length; console.error('Error importando lote', error); }
+      else { inserted += data.length; data.forEach(d=> expenses.unshift({ id:d.id, amount:Number(d.amount), description:d.description, category_id:d.category_id, date:d.created_at })); }
+    }
+    expenses.sort((a,b)=> new Date(b.date) - new Date(a.date));
+    renderAll();
+    wrap.innerHTML = '';
+    document.getElementById('importFile').value = '';
+    importParsedRows = null;
+    if(failed>0){ document.getElementById('importStatus').textContent = `Se importaron ${inserted} gastos. ${failed} no se pudieron guardar (revisa tu conexión e inténtalo de nuevo con esas filas).`; }
+    else { document.getElementById('importStatus').textContent = `Se importaron ${inserted} gastos correctamente.`; }
+    showToast(`Importados ${inserted} gastos`);
+  });
+}
+
+document.getElementById('importFileBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const status = document.getElementById('importStatus');
+  status.textContent = 'Leyendo archivo…';
+  document.getElementById('importPreview').innerHTML = '';
+  const name = file.name.toLowerCase();
+
+  const handleRows = (rawRows)=>{
+    if(!rawRows.length){ status.textContent = 'El archivo no tiene filas de datos.'; return; }
+    importParsedRows = normalizeImportRows(rawRows);
+    status.textContent = '';
+    renderImportPreview(importParsedRows);
+  };
+
+  if(name.endsWith('.csv')){
+    Papa.parse(file, {
+      header: true, skipEmptyLines: true,
+      complete: (res)=> handleRows(res.data),
+      error: (err)=>{ status.textContent = 'No se pudo leer el CSV: '+err.message; },
+    });
+  } else {
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      try{
+        const wb = XLSX.read(ev.target.result, { type:'array', cellDates:true });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval:'' });
+        handleRows(rows);
+      }catch(err){
+        console.error(err);
+        status.textContent = 'No se pudo leer el archivo Excel. Asegúrate de que sea un .xlsx válido.';
+      }
+    };
+    reader.onerror = ()=>{ status.textContent = 'No se pudo leer el archivo.'; };
+    reader.readAsArrayBuffer(file);
+  }
+});
+
+document.getElementById('downloadTemplateBtn').addEventListener('click', ()=>{
+  const exampleCat = categories.find(c=>c.name!=='Otros') || categories[0];
+  const rows = [
+    ['fecha','categoria','descripcion','importe'],
+    [new Date().toISOString().slice(0,10), exampleCat?exampleCat.name:'Comida', 'Ejemplo: supermercado', '25.50'],
+    [new Date().toISOString().slice(0,10), 'Otros', 'Ejemplo: gasto varios', '10'],
+  ];
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'plantilla-gastos.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 });
 
 /* ================= TABS ================= */
