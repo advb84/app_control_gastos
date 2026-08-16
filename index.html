@@ -16,7 +16,7 @@
   :root{
     --paper:#EDEEE8; --card:#FFFFFF; --ink:#2B2340; --ink-soft:#6B6480; --ink-faint:#9C97AD;
     --line:#D9D5C8; --gold:#C7963E; --teal:#2F7A6B; --coral:#D24C3D; --amber:#E0A83E; --blue:#3E7BC7;
-    --radius:16px; --ease:cubic-bezier(.22,.68,.36,1);
+    --radius:16px; --ease:cubic-bezier(.4,0,.2,1);
     --font-display:'Fraunces'; --font-body:'Inter'; --font-mono:'IBM Plex Mono';
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -31,12 +31,12 @@
 
   #authScreen{ min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:32px 26px; animation:fadeIn .4s var(--ease); }
   .auth-brand{ text-align:center; margin-bottom:34px; }
-  .auth-brand .mark{ width:56px; height:56px; border-radius:16px; background:var(--ink); margin:0 auto 16px; display:flex; align-items:center; justify-content:center; animation:markPop .5s var(--ease); }
+  .auth-brand .mark{ width:56px; height:56px; border-radius:16px; background:var(--ink); margin:0 auto 16px; display:flex; align-items:center; justify-content:center; animation:markPop .35s var(--ease); }
   .auth-brand .mark svg{width:26px;height:26px; stroke:var(--paper); fill:none; stroke-width:1.6;}
-  .auth-logo{ display:block; width:70%; max-width:220px; height:auto; margin:0 auto 18px; animation:markPop .5s var(--ease); }
+  .auth-logo{ display:block; width:70%; max-width:220px; height:auto; margin:0 auto 18px; animation:markPop .35s var(--ease); }
   .auth-brand h1{ font-family:var(--font-display),serif; font-weight:600; font-size:26px; margin:0 0 6px; }
   .auth-brand p{ font-size:13px; color:var(--ink-soft); margin:0; }
-  .auth-card{ background:var(--card); border-radius:var(--radius); padding:22px; box-shadow:0 1px 2px rgba(43,35,64,.04), 0 12px 28px -14px rgba(43,35,64,.18); animation:cardIn .45s var(--ease) .1s backwards; }
+  .auth-card{ background:var(--card); border-radius:var(--radius); padding:22px; box-shadow:0 1px 2px rgba(43,35,64,.04), 0 12px 28px -14px rgba(43,35,64,.18); animation:cardIn .3s var(--ease) .05s backwards; }
   .auth-tabs{ display:flex; gap:4px; background:#F1EFE8; border-radius:10px; padding:3px; margin-bottom:18px; }
   .auth-tab{ flex:1; text-align:center; padding:8px 0; border-radius:8px; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; transition:all .2s var(--ease); }
   .auth-tab.active{ background:var(--ink); color:var(--paper); }
@@ -45,11 +45,11 @@
   .auth-hint{ font-size:11.5px; color:var(--ink-faint); margin-top:10px; line-height:1.5; }
 
   @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
-  @keyframes markPop{ from{opacity:0; transform:scale(.6) rotate(-8deg);} to{opacity:1; transform:scale(1) rotate(0);} }
-  @keyframes cardIn{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
-  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
-  @keyframes panelIn{ from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
-  @keyframes popIn{ from{opacity:0; transform:scale(.92);} to{opacity:1; transform:scale(1);} }
+  @keyframes markPop{ from{opacity:0; transform:scale(.96);} to{opacity:1; transform:scale(1);} }
+  @keyframes cardIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 30%{transform:translateX(-3px);} 70%{transform:translateX(3px);} }
+  @keyframes panelIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes popIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
 
   #app{ display:none; flex-direction:column; min-height:100vh; }
   #app.visible{ display:flex; animation:fadeIn .35s var(--ease); }
@@ -73,7 +73,7 @@
   .chip-empty{ font-size:11px; opacity:.55; font-family:var(--font-body),sans-serif; }
 
   #warnbar{padding:0 18px; margin-top:14px;}
-  .warn-banner{ background:#3A2A2A; border:1px solid rgba(210,76,61,.5); color:#F4D9D4; border-radius:12px; padding:10px 14px; font-size:12.5px; margin-bottom:14px; display:flex; gap:8px; align-items:flex-start; line-height:1.4; animation:popIn .3s var(--ease); }
+  .warn-banner{ background:#3A2A2A; border:1px solid rgba(210,76,61,.5); color:#F4D9D4; border-radius:12px; padding:10px 14px; font-size:12.5px; margin-bottom:14px; display:flex; gap:8px; align-items:flex-start; line-height:1.4; animation:popIn .2s var(--ease); }
   .warn-banner b{color:#FF8A76;}
   .warn-banner.amberish{ border-color:rgba(224,168,62,.5); background:#3A331F; color:#F3E2BE; }
 
@@ -153,7 +153,7 @@
   .hist-filters{display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:2px;}
   .filter-pill{ flex-shrink:0; padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:#fff; font-size:12px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; transition:all .15s var(--ease); }
   .filter-pill.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
-  .tx-item{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); animation:popIn .25s var(--ease) backwards; }
+  .tx-item{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); animation:popIn .18s var(--ease) backwards; }
   .tx-item:last-child{border-bottom:none;}
   .tx-left{display:flex; align-items:center; gap:10px; min-width:0;}
   .tx-cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
@@ -162,9 +162,9 @@
   .tx-right{display:flex; align-items:center; gap:10px; flex-shrink:0;}
   .tx-amt{font-family:var(--font-mono),monospace; font-weight:600; font-size:14px;}
   .tx-del{background:none; border:none; color:var(--ink-faint); font-size:16px; cursor:pointer; padding:2px 4px; transition:color .15s, transform .15s;}
-  .tx-del:active{ transform:scale(1.3); color:var(--coral); }
+  .tx-del:active{ transform:scale(1.12); color:var(--coral); }
   .tx-edit{background:none; border:none; color:var(--ink-faint); font-size:14px; cursor:pointer; padding:2px 4px; transition:color .15s, transform .15s;}
-  .tx-edit:active{ transform:scale(1.2); color:var(--ink); }
+  .tx-edit:active{ transform:scale(1.08); color:var(--ink); }
   .empty-state{text-align:center; padding:30px 10px; color:var(--ink-faint); font-size:13px;}
 
   .cat-manage-row{ display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); }
@@ -195,20 +195,20 @@
 
   nav.tabbar{ position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:460px; background:var(--card); border-top:1px solid var(--line); display:flex; padding:7px 4px calc(7px + env(safe-area-inset-bottom)); z-index:10; }
   .tab-btn{ flex:1; background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 0; cursor:pointer; color:var(--ink-faint); font-size:9.5px; transition:color .2s var(--ease), transform .15s var(--ease); }
-  .tab-btn:active{ transform:scale(.9); }
+  .tab-btn:active{ transform:scale(.94); }
   .tab-btn svg{width:19px; height:19px; stroke:var(--ink-faint); fill:none; stroke-width:1.8; transition:stroke .2s;}
   .tab-btn.active{color:var(--ink);}
   .tab-btn.active svg{stroke:var(--ink); transform:translateY(-1px);}
 
   .tab-panel{display:none;}
-  .tab-panel.active{display:block; animation:panelIn .32s var(--ease);}
-  .tab-panel.active .card{ animation:cardIn .4s var(--ease) backwards; }
+  .tab-panel.active{display:block; animation:panelIn .2s var(--ease);}
+  .tab-panel.active .card{ animation:cardIn .22s var(--ease) backwards; }
 
   .toast{ position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(8px); background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:12.5px; opacity:0; pointer-events:none; transition:opacity .25s var(--ease), transform .25s var(--ease); max-width:80%; text-align:center; z-index:20; }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
   .toast.err{ background:var(--coral); }
 
-  .confirm-box{ background:#FBFAF7; border:1px dashed var(--gold); border-radius:12px; padding:14px; margin-top:14px; animation:popIn .3s var(--ease); }
+  .confirm-box{ background:#FBFAF7; border:1px dashed var(--gold); border-radius:12px; padding:14px; margin-top:14px; animation:popIn .2s var(--ease); }
   .confirm-box .cf-title{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--gold); font-weight:600; margin-bottom:8px;}
 
   #loadingScreen{ position:fixed; inset:0; background:var(--paper); display:flex; align-items:center; justify-content:center; z-index:50; font-size:13px; color:var(--ink-soft); }
@@ -1090,13 +1090,13 @@ function parseAmountFromText(text){
   return null;
 }
 
-function isDuplicateExpense(amount, category_id, dateStr){
+function isDuplicateExpense(amount, category_id, dateStr, excludeId){
   const amt = Math.round(parseFloat(amount)*100)/100;
   const d = dateStr || new Date().toISOString().slice(0,10);
-  return expenses.some(e => Math.round(e.amount*100)/100 === amt && e.category_id === category_id && String(e.date).slice(0,10) === d);
+  return expenses.some(e => (!excludeId || e.id!==excludeId) && Math.round(e.amount*100)/100 === amt && e.category_id === category_id && String(e.date).slice(0,10) === d);
 }
-async function confirmIfDuplicate(amount, category_id, dateStr){
-  if(!isDuplicateExpense(amount, category_id, dateStr)) return true;
+async function confirmIfDuplicate(amount, category_id, dateStr, excludeId){
+  if(!isDuplicateExpense(amount, category_id, dateStr, excludeId)) return true;
   const cat = catById(category_id);
   const dTxt = new Date((dateStr||new Date().toISOString().slice(0,10))+'T00:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
   return confirm(`Ya tienes un gasto de ${fmt(amount)} en "${cat.name}" el ${dTxt}. ¿Quieres registrarlo de todas formas?`);
@@ -1749,6 +1749,10 @@ function renderHistList(){
       const newDateStr = dateInp.value;
       if(!newAmount || newAmount<=0){ showToast('Introduce un importe válido'); return; }
       if(!newDateStr){ showToast('Elige una fecha válida'); return; }
+
+      const proceed = await confirmIfDuplicate(newAmount, newCategoryId, newDateStr, id);
+      if(!proceed) return;
+
       // conserva la hora original, solo cambia el día
       const oldDate = new Date(e.date);
       const newDate = new Date(newDateStr+'T00:00:00');
