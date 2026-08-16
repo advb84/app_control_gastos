@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Merriweather:wght@400;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -57,7 +58,8 @@
   header.receipt::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; height:14px; background-image: radial-gradient(circle at 10px 0, transparent 8px, var(--ink) 8px); background-size: 20px 14px; background-repeat: repeat-x; }
   .receipt-top{ display:flex; justify-content:space-between; align-items:flex-start; font-family:var(--font-mono),monospace; font-size:11px; letter-spacing:.08em; opacity:.6; text-transform:uppercase; }
   .receipt-top .userchip{ display:flex; align-items:center; gap:6px; opacity:1; }
-  .receipt-top .userchip .av{ width:16px;height:16px;border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:9px; color:#2B2340; font-weight:700;}
+  .receipt-top .userchip .av{ width:16px;height:16px;border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:9px; color:#2B2340; font-weight:700; overflow:hidden;}
+  .receipt-top .userchip .av img{ width:100%; height:100%; object-fit:cover; }
   .brand{ font-family:var(--font-display),serif; font-weight:600; font-size:22px; margin:10px 0 2px; letter-spacing:.01em; }
   .brand small{ display:block; font-family:var(--font-body),sans-serif; font-weight:400; font-size:12px; opacity:.65; letter-spacing:.02em; margin-top:2px; }
   .today-total{ margin-top:18px; display:flex; align-items:baseline; gap:10px; }
@@ -170,11 +172,13 @@
   .cat-manage-left{ display:flex; align-items:center; font-size:13.5px; }
   .cat-del-btn{ background:none; border:none; color:var(--ink-faint); font-size:15px; cursor:pointer; }
   .cat-del-btn:disabled{ opacity:.25; cursor:default; }
+  .cat-edit-btn{ background:none; border:none; color:var(--ink-faint); font-size:13px; cursor:pointer; margin-right:10px; }
   .add-cat-row{ display:flex; gap:8px; margin-top:12px; align-items:center; }
   .add-cat-row input[type="text"]{ flex:1; }
   .add-cat-row input[type="color"]{ width:42px; height:42px; border:1px solid var(--line); border-radius:10px; padding:2px; background:#fff; cursor:pointer; }
   .user-summary{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
-  .user-summary .av-big{ width:44px; height:44px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--ink); font-family:var(--font-display),serif; font-size:18px; }
+  .user-summary .av-big{ width:44px; height:44px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--ink); font-family:var(--font-display),serif; font-size:18px; overflow:hidden; flex-shrink:0; }
+  .user-summary .av-big img{ width:100%; height:100%; object-fit:cover; }
   .user-summary .uname{ font-weight:600; font-size:15px; }
   .user-summary .usince{ font-size:11.5px; color:var(--ink-faint); }
 
@@ -313,6 +317,7 @@
               <div class="panel-move"><button data-dir="-1" data-panel="totals">▲</button><button data-dir="1" data-panel="totals">▼</button><button class="panel-max" data-panel="totals" title="Maximizar">⤢</button></div>
             </div>
             <div class="totals-grid" id="totalsGrid"></div>
+            <div id="totalsDetail"></div>
           </div>
 
           <div class="card" data-panel="category">
@@ -326,6 +331,8 @@
               <button class="btn-chip" data-type="doughnut">Dona</button>
             </div>
             <div class="checkbox-row" id="catCompareRow"><input type="checkbox" id="catCompareChk" checked><label for="catCompareChk">Comparar con mes anterior</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="chartLegendChk" checked><label for="chartLegendChk">Mostrar leyenda</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="chartLabelsChk" checked><label for="chartLabelsChk">Mostrar valores en el gráfico</label></div>
             <div class="chart-wrap" id="categoryChartWrap"><canvas id="categoryChartCanvas"></canvas></div>
             <div class="empty-state" id="catNoData" style="display:none;">Aún no hay gastos este mes</div>
             <div class="empty-state" id="catChartError" style="display:none;color:var(--coral);"></div>
@@ -355,6 +362,8 @@
               <div class="field"><label>Agrupar por</label><select id="cbGroup"><option value="day">Día</option><option value="category">Categoría</option><option value="week">Semana</option></select></div>
               <div class="field"><label>Tipo de gráfico</label><select id="cbType"><option value="bar">Barras</option><option value="line">Línea</option><option value="doughnut">Dona</option></select></div>
             </div>
+            <div class="checkbox-row"><input type="checkbox" id="cbLegendChk" checked><label for="cbLegendChk">Mostrar leyenda</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="cbLabelsChk" checked><label for="cbLabelsChk">Mostrar valores en el gráfico</label></div>
             <button class="btn-primary" id="cbGenBtn">Generar reporte</button>
             <div id="customReportOut"></div>
             <div id="savedReports" style="margin-top:14px;"></div>
@@ -425,6 +434,9 @@
             <div class="av-big" id="avBig">?</div>
             <div><div class="uname" id="unameBig">—</div><div class="usince" id="usinceBig"></div></div>
           </div>
+          <input type="file" id="avatarFile" accept="image/*" style="display:none;">
+          <button class="btn-secondary" id="avatarBtn">Cambiar foto de perfil</button>
+          <button class="btn-secondary" id="avatarRemoveBtn" style="color:var(--coral); border-color:rgba(210,76,61,.4);">Quitar foto</button>
         </div>
 
         <div class="card">
@@ -538,7 +550,7 @@ const DEFAULT_CATEGORIES = [
 const PERIOD_LABELS = { daily:'Diario', weekly:'Semanal', biweekly:'Quincenal', monthly:'Mensual', quarterly:'Trimestral', annual:'Anual', custom:'Personalizado' };
 const MONTH_NAMES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const DEFAULT_PANEL_ORDER = ['totals','category','trend','custom'];
-const DEFAULT_THEME = { paper:'#EDEEE8', card:'#FFFFFF', ink:'#2B2340', gold:'#C7963E', teal:'#2F7A6B', coral:'#D24C3D', fontFamily:'default', fontScale:1 };
+const DEFAULT_THEME = { paper:'#EDEEE8', card:'#FFFFFF', ink:'#2B2340', gold:'#C7963E', teal:'#2F7A6B', coral:'#D24C3D', fontFamily:'default', fontScale:1, chartLegend:true, chartLabels:true };
 function cssVar(name){ return (getComputedStyle(document.documentElement).getPropertyValue(name)||'').trim(); }
 
 let currentUser = null;
@@ -550,6 +562,13 @@ let profile = null;
 let histFilter = 'all';
 let cbSelectedCats = new Set();
 let charts = {};
+try{
+  if(typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined'){
+    Chart.register(ChartDataLabels);
+    Chart.defaults.set('plugins.datalabels', { display:false });
+  }
+}catch(e){ console.error('No se pudo registrar el plugin de etiquetas', e); }
+let chartPrefs = { legend:true, labels:true };
 let editingGoals = new Set();
 let catChartType = 'bar';
 let catCompareEnabled = true;
@@ -657,10 +676,9 @@ async function afterAuth(user, isNew){
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').classList.add('visible');
   document.getElementById('userLabel').textContent = currentUser.displayName;
-  document.getElementById('userAv').textContent = currentUser.displayName.charAt(0).toUpperCase();
-  document.getElementById('avBig').textContent = currentUser.displayName.charAt(0).toUpperCase();
   document.getElementById('unameBig').textContent = currentUser.displayName;
   document.getElementById('usinceBig').textContent = 'Usuario desde ' + new Date(currentUser.createdAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+  renderAvatar();
 
   fillCategorySelect();
   initSpeech();
@@ -697,10 +715,60 @@ function fillProfileForm(){
   document.getElementById('pJob').value = profile.job || '';
   document.getElementById('pAddress').value = profile.address || '';
 }
+function renderAvatar(){
+  const initial = currentUser.displayName.charAt(0).toUpperCase();
+  const url = profile && profile.avatar_data;
+  document.getElementById('userAv').innerHTML = url ? `<img src="${url}" alt="">` : initial;
+  document.getElementById('avBig').innerHTML = url ? `<img src="${url}" alt="">` : initial;
+}
+function resizeImageToDataUrl(file, maxSize, quality){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e)=>{ img.onload = ()=>{
+      let w = img.width, h = img.height;
+      if(w>h){ if(w>maxSize){ h = Math.round(h*maxSize/w); w = maxSize; } }
+      else { if(h>maxSize){ w = Math.round(w*maxSize/h); h = maxSize; } }
+      // recorte cuadrado centrado
+      const side = Math.min(w,h);
+      const canvas = document.createElement('canvas');
+      canvas.width = side; canvas.height = side;
+      const ctx = canvas.getContext('2d');
+      const sx = (img.width - Math.min(img.width,img.height))/2;
+      const sy = (img.height - Math.min(img.width,img.height))/2;
+      const s = Math.min(img.width, img.height);
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, side, side);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    }; img.onerror = reject; img.src = e.target.result; };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+document.getElementById('avatarBtn').addEventListener('click', ()=> document.getElementById('avatarFile').click());
+document.getElementById('avatarFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ showToast('Elige un archivo de imagen', true); return; }
+  try{
+    const dataUrl = await resizeImageToDataUrl(file, 240, 0.82);
+    if(dataUrl.length > 900000){ showToast('La imagen sigue siendo muy pesada, prueba con otra', true); return; }
+    const ok = await saveProfilePatch({ avatar_data: dataUrl });
+    if(ok){ renderAvatar(); showToast('Foto de perfil actualizada'); }
+  }catch(err){ console.error(err); showToast('No se pudo procesar la imagen', true); }
+  document.getElementById('avatarFile').value = '';
+});
+document.getElementById('avatarRemoveBtn').addEventListener('click', async ()=>{
+  const ok = await saveProfilePatch({ avatar_data: null });
+  if(ok){ renderAvatar(); showToast('Foto de perfil eliminada'); }
+});
 async function saveProfilePatch(patch){
   const { data, error } = await sb.from('profiles').update(patch).eq('user_id', currentUser.id).select().single();
   if(error){ showToast('No se pudo guardar', true); return false; }
   profile = data; return true;
+}
+async function saveThemePatch(partial){
+  const newTheme = Object.assign({}, (profile && profile.theme) || {}, partial);
+  return await saveProfilePatch({ theme: newTheme });
 }
 document.getElementById('pSaveBtn').addEventListener('click', async ()=>{
   const patch = {
@@ -739,6 +807,10 @@ function applyTheme(theme){
   if(famSel) famSel.value = t.fontFamily || 'default';
   const scaleSel = document.getElementById('theme_fontScale');
   if(scaleSel) scaleSel.value = String(scale);
+  chartPrefs.legend = t.chartLegend!==false;
+  chartPrefs.labels = t.chartLabels!==false;
+  const legendChk = document.getElementById('chartLegendChk'); if(legendChk) legendChk.checked = chartPrefs.legend;
+  const labelsChk = document.getElementById('chartLabelsChk'); if(labelsChk) labelsChk.checked = chartPrefs.labels;
 }
 document.getElementById('theme_fontFamily').addEventListener('change', ()=>{
   const fam = FONT_PRESETS[document.getElementById('theme_fontFamily').value] || FONT_PRESETS.default;
@@ -759,6 +831,8 @@ document.getElementById('themeSaveBtn').addEventListener('click', async ()=>{
     coral: document.getElementById('theme_coral').value,
     fontFamily: document.getElementById('theme_fontFamily').value,
     fontScale: parseFloat(document.getElementById('theme_fontScale').value) || 1,
+    chartLegend: chartPrefs.legend,
+    chartLabels: chartPrefs.labels,
   };
   applyTheme(theme);
   const ok = await saveProfilePatch({ theme });
@@ -802,13 +876,57 @@ document.getElementById('addCatBtn').addEventListener('click', async ()=>{
   nameInp.value = '';
   showToast('Categoría añadida: '+name);
 });
+let editingCategories = new Set();
 function renderCatManage(){
   const wrap = document.getElementById('catManageList');
-  wrap.innerHTML = categories.map(c=>`
+  wrap.innerHTML = categories.map(c=>{
+    if(editingCategories.has(c.id)){
+      return `
+        <div class="cat-manage-row" style="display:block; padding:10px 0;">
+          <div class="add-cat-row" style="margin-top:0;">
+            <input type="text" id="ce-name-${c.id}" value="${String(c.name).replace(/"/g,'&quot;')}">
+            <input type="color" id="ce-color-${c.id}" value="${c.color}">
+          </div>
+          <div class="goal-foot-actions" style="justify-content:flex-end; margin-top:8px;">
+            <button class="cat-edit-save" data-id="${c.id}">Guardar</button>
+            <button class="cat-edit-cancel" data-id="${c.id}">Cancelar</button>
+          </div>
+        </div>`;
+    }
+    return `
     <div class="cat-manage-row">
       <span class="cat-manage-left"><span class="cat-dot" style="background:${c.color}"></span>${c.name}</span>
-      <button class="cat-del-btn" data-id="${c.id}" ${c.name==='Otros'?'disabled':''} aria-label="Eliminar categoría">✕</button>
-    </div>`).join('');
+      <span>
+        <button class="cat-edit-btn" data-id="${c.id}" aria-label="Editar categoría" title="Editar">✎</button>
+        <button class="cat-del-btn" data-id="${c.id}" ${c.name==='Otros'?'disabled':''} aria-label="Eliminar categoría">✕</button>
+      </span>
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.cat-edit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingCategories.add(btn.dataset.id); renderCatManage(); });
+  });
+  wrap.querySelectorAll('.cat-edit-cancel').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingCategories.delete(btn.dataset.id); renderCatManage(); });
+  });
+  wrap.querySelectorAll('.cat-edit-save').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.id;
+      const c = categories.find(x=>x.id===id); if(!c) return;
+      const nameInp = document.getElementById('ce-name-'+id);
+      const colorInp = document.getElementById('ce-color-'+id);
+      const newName = nameInp.value.trim();
+      if(!newName){ showToast('El nombre no puede estar vacío'); return; }
+      btn.disabled = true; btn.textContent = 'Guardando…';
+      const { data, error } = await sb.from('categories').update({ name: newName, color: colorInp.value }).eq('id', id).select().single();
+      if(error){ showToast('No se pudo guardar', true); btn.disabled=false; btn.textContent='Guardar'; return; }
+      // Se actualiza la misma categoría (mismo id): los gastos y metas que ya la usan quedan enlazados igual.
+      c.name = data.name; c.color = data.color;
+      editingCategories.delete(id);
+      fillCategorySelect(); renderAll();
+      showToast('Categoría actualizada');
+    });
+  });
   wrap.querySelectorAll('.cat-del-btn').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const id = btn.dataset.id;
@@ -1129,18 +1247,50 @@ document.getElementById('reportsPanels').addEventListener('click', async (e)=>{
 });
 
 function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
+let openTotalsPeriod = null;
 function renderReports(){
-  const todayTotal = sumSince(startOfDay(new Date()), new Date());
-  const weekTotal = sumSince(startOfWeek(new Date()), new Date());
-  const monthTotal = sumSince(startOfMonth(new Date()), new Date());
-  const yearTotal = sumSince(startOfYear(new Date()), new Date());
-  document.getElementById('totalsGrid').innerHTML = `
-    <div class="stat-box"><div class="n">${fmt(todayTotal)}</div><div class="l">Hoy</div></div>
-    <div class="stat-box"><div class="n">${fmt(weekTotal)}</div><div class="l">Esta semana</div></div>
-    <div class="stat-box"><div class="n">${fmt(monthTotal)}</div><div class="l">Este mes</div></div>
-    <div class="stat-box"><div class="n">${fmt(yearTotal)}</div><div class="l">Este año</div></div>`;
+  const now = new Date();
+  const periods = {
+    today: { label:'Hoy', range:[startOfDay(now), now] },
+    week: { label:'Esta semana', range:[startOfWeek(now), now] },
+    month: { label:'Este mes', range:[startOfMonth(now), now] },
+    year: { label:'Este año', range:[startOfYear(now), now] },
+  };
+  document.getElementById('totalsGrid').innerHTML = Object.keys(periods).map(key=>{
+    const [s,e] = periods[key].range;
+    const total = sumSince(s,e);
+    return `<div class="stat-box" data-period="${key}" style="cursor:pointer;"><div class="n">${fmt(total)}</div><div class="l">${periods[key].label}</div></div>`;
+  }).join('');
+  document.querySelectorAll('#totalsGrid .stat-box').forEach(box=>{
+    box.addEventListener('click', ()=>{
+      const key = box.dataset.period;
+      openTotalsPeriod = (openTotalsPeriod===key) ? null : key;
+      renderTotalsDetail(periods);
+    });
+  });
+  renderTotalsDetail(periods);
   renderCategorySection();
   renderTrendChart();
+}
+function renderTotalsDetail(periods){
+  const wrap = document.getElementById('totalsDetail');
+  if(!openTotalsPeriod){ wrap.innerHTML=''; return; }
+  const p = periods[openTotalsPeriod];
+  const [s,e] = p.range;
+  const st=s.getTime(), en=e.getTime();
+  const items = expenses.filter(x=>{ const t=new Date(x.date).getTime(); return t>=st && t<=en; })
+    .sort((a,b)=> new Date(b.date) - new Date(a.date));
+  let html = `<div class="sub" style="margin-top:14px; margin-bottom:6px;">Detalle · ${p.label} (${items.length})</div>`;
+  if(items.length===0){
+    html += '<div class="empty-state">No hay gastos en este periodo</div>';
+  } else {
+    html += '<div style="max-height:280px; overflow-y:auto;">' + items.map(x=>{
+      const c = catById(x.category_id); const d = new Date(x.date);
+      const dTxt = d.toLocaleDateString('es-ES',{day:'2-digit', month:'short'});
+      return `<div class="ledger-row"><span class="name"><span class="cat-dot" style="background:${c.color}"></span>${dTxt} · ${c.name} · ${x.description}</span><span class="val">${fmt(x.amount)}</span></div>`;
+    }).join('') + '</div>';
+  }
+  wrap.innerHTML = html;
 }
 
 function sumForRangeByCat(start, end){
@@ -1161,6 +1311,25 @@ document.getElementById('catCompareChk').addEventListener('change', (e)=>{
   catCompareEnabled = e.target.checked;
   renderCategorySection();
 });
+async function updateChartPrefs(patch){
+  Object.assign(chartPrefs, patch);
+  ['chartLegendChk','chartLabelsChk'].forEach(id=>{
+    const el = document.getElementById(id); if(!el) return;
+    el.checked = id==='chartLegendChk' ? chartPrefs.legend : chartPrefs.labels;
+  });
+  renderCategorySection();
+  renderTrendChart();
+  if(profile) await saveThemePatch({ chartLegend: chartPrefs.legend, chartLabels: chartPrefs.labels });
+}
+document.getElementById('chartLegendChk').addEventListener('change', (e)=> updateChartPrefs({ legend: e.target.checked }));
+document.getElementById('chartLabelsChk').addEventListener('change', (e)=> updateChartPrefs({ labels: e.target.checked }));
+function buildDatalabelsOpt(kind, showLabels){
+  if(!showLabels) return { display:false };
+  const base = { font:{ size:10, weight:'600' }, formatter:(v)=> (v && v>0) ? fmt(v) : '' };
+  if(kind==='doughnut') return Object.assign({}, base, { color:'#fff', anchor:'center', align:'center' });
+  if(kind==='line') return Object.assign({}, base, { color: cssVar('--ink')||'#2B2340', anchor:'end', align:'top', offset:4 });
+  return Object.assign({}, base, { color: cssVar('--ink')||'#2B2340', anchor:'end', align:'top', offset:2 });
+}
 function renderCategorySection(){
   const now = new Date();
   const thisStart = startOfMonth(now);
@@ -1196,7 +1365,8 @@ function renderCategorySection(){
       charts.category = new Chart(ctx, {
         type:'doughnut',
         data:{ labels: cats.map(c=>c.name), datasets:[{ data: cats.map(c=>thisData[c.id]||0), backgroundColor: cats.map(c=>c.color), borderWidth:2, borderColor:'#fff' }] },
-        options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', animation:{ animateRotate:true, duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } } }
+        options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', animation:{ animateRotate:true, duration:700, easing:'easeOutCubic' },
+          plugins:{ legend:{ display: chartPrefs.legend, position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } }, datalabels: buildDatalabelsOpt('doughnut', chartPrefs.labels) } }
       });
     } else {
       const datasets = [];
@@ -1206,7 +1376,7 @@ function renderCategorySection(){
         type: catChartType==='line' ? 'line' : 'bar',
         data:{ labels: cats.map(c=>c.name), datasets },
         options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' },
-          plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } },
+          plugins:{ legend:{ display: chartPrefs.legend && datasets.length>1, position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } }, datalabels: buildDatalabelsOpt(catChartType, chartPrefs.labels) },
           scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:10.5 } } } } }
       });
     }
@@ -1237,7 +1407,7 @@ function renderTrendChart(){
     charts.trend = new Chart(document.getElementById('trendChart'), {
       type:'bar',
       data:{ labels: months.map(m=>m.label), datasets:[{ data: months.map(m=>m.total), backgroundColor: months.map((m,i)=> i===months.length-1 ? goldColor : inkColor), borderRadius:7, maxBarThickness:30 }] },
-      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false } },
+      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:700, easing:'easeOutCubic' }, plugins:{ legend:{ display:false }, datalabels: buildDatalabelsOpt('bar', chartPrefs.labels) },
         scales:{ y:{ beginAtZero:true, grid:{ color:'#EDEBE3' }, ticks:{ font:{ size:10 } } }, x:{ grid:{ display:false }, ticks:{ font:{ size:11 } } } } }
     });
   }catch(err){
@@ -1285,7 +1455,9 @@ function buildReportData(cfg){
   }
   return { total, count: items.length, labels, data, colors };
 }
+let lastCustomCfg = null;
 function renderCustomReport(cfg){
+  lastCustomCfg = cfg;
   const r = buildReportData(cfg);
   const out = document.getElementById('customReportOut');
   destroyChart('custom');
@@ -1331,10 +1503,12 @@ function renderCustomReport(cfg){
   try{
     const ctx = document.getElementById('customChartCanvas'); const type = cfg.type;
     const inkColor = cssVar('--ink') || '#2B2340';
+    const showLegend = document.getElementById('cbLegendChk').checked;
+    const showLabels = document.getElementById('cbLabelsChk').checked;
     charts.custom = new Chart(ctx, {
       type: type,
       data:{ labels: r.labels, datasets:[{ data: r.data, backgroundColor: type==='line' ? 'rgba(43,35,64,.12)' : r.colors, borderColor:inkColor, borderWidth: type==='line'?2:0, borderRadius: type==='bar'?6:0, fill:type==='line', tension:.35, pointRadius:type==='line'?3:0 }] },
-      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' }, plugins:{ legend:{ display: type==='doughnut' } },
+      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:650, easing:'easeOutCubic' }, plugins:{ legend:{ display: showLegend && type==='doughnut' }, datalabels: buildDatalabelsOpt(type, showLabels) },
         scales: type==='doughnut' ? {} : { y:{ beginAtZero:true, grid:{ color:'#EDEBE3' } }, x:{ grid:{ display:false } } } }
     });
   }catch(err){
@@ -1348,17 +1522,50 @@ document.getElementById('cbGenBtn').addEventListener('click', ()=>{
   if(!cfg.from || !cfg.to || cfg.cats.length===0){ showToast('Completa fechas y al menos una categoría'); return; }
   renderCustomReport(cfg);
 });
+document.getElementById('cbLegendChk').addEventListener('change', ()=>{ if(lastCustomCfg) renderCustomReport(lastCustomCfg); });
+document.getElementById('cbLabelsChk').addEventListener('change', ()=>{ if(lastCustomCfg) renderCustomReport(lastCustomCfg); });
 function renderSavedReports(){
   const wrap = document.getElementById('savedReports');
   if(!reportPresets.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML = '<div class="sub" style="margin-bottom:6px;">Reportes guardados ('+reportPresets.length+')</div>' + reportPresets.map(rp=>`<div class="report-preset"><span>${rp.name}</span><button data-id="${rp.id}">Ver</button></div>`).join('');
-  wrap.querySelectorAll('button[data-id]').forEach(btn=>{
+  wrap.innerHTML = '<div class="sub" style="margin-bottom:6px;">Reportes guardados ('+reportPresets.length+')</div>' + reportPresets.map(rp=>`
+    <div class="report-preset">
+      <span id="rp-name-${rp.id}">${rp.name}</span>
+      <span style="display:flex; gap:6px;">
+        <button data-act="view" data-id="${rp.id}">Ver</button>
+        <button data-act="rename" data-id="${rp.id}">Renombrar</button>
+        <button data-act="delete" data-id="${rp.id}" style="color:var(--coral); border-color:rgba(210,76,61,.4);">Eliminar</button>
+      </span>
+    </div>`).join('');
+
+  wrap.querySelectorAll('button[data-act="view"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const rp = reportPresets.find(x=>x.id===btn.dataset.id); if(!rp) return;
       const cfg = rp.config;
       document.getElementById('cbFrom').value = cfg.from; document.getElementById('cbTo').value = cfg.to;
       document.getElementById('cbGroup').value = cfg.group; document.getElementById('cbType').value = cfg.type;
       cbSelectedCats = new Set(cfg.cats); renderCbCats(); renderCustomReport(cfg);
+    });
+  });
+  wrap.querySelectorAll('button[data-act="rename"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const rp = reportPresets.find(x=>x.id===btn.dataset.id); if(!rp) return;
+      const newName = prompt('Nuevo nombre para este reporte:', rp.name);
+      if(!newName || !newName.trim() || newName.trim()===rp.name) return;
+      const { data, error } = await sb.from('report_presets').update({ name: newName.trim() }).eq('id', rp.id).select().single();
+      if(error){ showToast('No se pudo renombrar', true); return; }
+      rp.name = data.name;
+      renderSavedReports();
+      showToast('Reporte renombrado');
+    });
+  });
+  wrap.querySelectorAll('button[data-act="delete"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('¿Eliminar este reporte guardado? El gráfico y sus filtros se perderán, pero tus gastos no se ven afectados.')) return;
+      const id = btn.dataset.id;
+      await sb.from('report_presets').delete().eq('id', id);
+      reportPresets = reportPresets.filter(rp=>rp.id!==id);
+      renderSavedReports();
+      showToast('Reporte eliminado');
     });
   });
 }
